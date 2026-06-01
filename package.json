@@ -1,0 +1,12 @@
+{
+  "name": "e-auksion-filter",
+  "version": "1.0.0",
+  "description": "E-Auksion lot filter and viewer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

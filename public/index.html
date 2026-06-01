@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>E-AUKSION Local Filter</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <div class="brand-mark">EA</div>
+          <div>
+            <h1>E-AUKSION Filter</h1>
+            <p>Local analysis tool</p>
+          </div>
+        </div>
+
+        <form id="filterForm" class="filters">
+          <label>
+            <span>Group ID</span>
+            <input id="group" name="group" type="number" value="41" min="1" />
+          </label>
+
+          <label>
+            <span>Category ID</span>
+            <input id="category" name="category" type="number" value="169" min="1" />
+          </label>
+
+          <label>
+            <span>Lot number or name</span>
+            <input id="query" name="q" type="search" placeholder="23745576 or 46A/2" />
+          </label>
+
+          <label>
+            <span>Auction start date</span>
+            <input id="auctionDate" name="date" type="text" placeholder="DD.MM.YYYY" />
+          </label>
+
+          <div class="split">
+            <label>
+              <span>Auction start from</span>
+              <input id="dateFrom" name="datef" type="text" placeholder="DD.MM.YYYY" />
+            </label>
+
+            <label>
+              <span>Auction start to</span>
+              <input id="dateTo" name="datet" type="text" placeholder="DD.MM.YYYY" />
+            </label>
+          </div>
+
+          <div class="date-presets" aria-label="Date presets">
+            <button type="button" data-preset="today">Today</button>
+            <button type="button" data-preset="this-month">This month</button>
+            <button type="button" data-preset="last-month">Last month</button>
+            <button type="button" data-preset="last-90">Last 90 days</button>
+          </div>
+
+          <div class="split">
+            <label>
+              <span>Min price</span>
+              <input id="minPrice" name="minPrice" type="text" inputmode="numeric" placeholder="0" />
+            </label>
+
+            <label>
+              <span>Max price</span>
+              <input id="maxPrice" name="maxPrice" type="text" inputmode="numeric" placeholder="Any" />
+            </label>
+          </div>
+
+          <div class="split">
+            <label>
+              <span>Min applications</span>
+              <input id="minApplications" name="minApplications" type="number" min="0" placeholder="0" />
+            </label>
+
+            <label>
+              <span>Max applications</span>
+              <input id="maxApplications" name="maxApplications" type="number" min="0" placeholder="Any" />
+            </label>
+          </div>
+
+          <div class="split">
+            <label>
+              <span>Type</span>
+              <select id="index" name="index">
+                <option value="1">New lots</option>
+                <option value="2">Completed</option>
+                <option value="3">Current bidding</option>
+                <option value="5">Search results</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Per page</span>
+              <select id="perPage" name="perPage">
+                <option>12</option>
+                <option>24</option>
+                <option>48</option>
+                <option>100</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            <span>Completed status</span>
+            <select id="finishedStatus" name="fas">
+              <option value="0">All completed</option>
+              <option value="1">Successful</option>
+              <option value="2">Failed / not held</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Sort</span>
+            <select id="order" name="order">
+              <option value="0">Default</option>
+              <option value="1">Newest</option>
+              <option value="2">Oldest</option>
+              <option value="3">Highest price</option>
+              <option value="4">Lowest price</option>
+              <option value="7">Most viewed</option>
+              <option value="8">Least viewed</option>
+            </select>
+          </label>
+
+          <div class="actions">
+            <button type="submit" class="primary">Search</button>
+            <button type="button" id="resetButton">Reset</button>
+          </div>
+        </form>
+
+        <section class="saved-panel">
+          <div class="panel-title">
+            <h2>Saved Searches</h2>
+            <button type="button" id="saveSearch">Save</button>
+          </div>
+          <div id="savedSearches" class="saved-list"></div>
+        </section>
+      </aside>
+
+      <section class="content">
+        <header class="toolbar">
+          <div>
+            <h2 id="resultTitle">Lots</h2>
+            <p id="summary">Loading public auction data...</p>
+          </div>
+          <div class="toolbar-actions">
+            <button id="prevPage" title="Previous page" aria-label="Previous page">&larr;</button>
+            <span id="pageInfo">Page 1</span>
+            <button id="nextPage" title="Next page" aria-label="Next page">&rarr;</button>
+          </div>
+        </header>
+
+        <section id="stats" class="stats-grid" aria-label="Result summary"></section>
+
+        <div class="quick-filter">
+          <input id="localFilter" type="search" placeholder="Filter loaded results locally..." />
+          <div class="tool-buttons">
+            <button id="toggleView" type="button">Table view</button>
+            <button id="loadAll" type="button">Load all pages</button>
+            <button id="loadDetails" type="button">Load details</button>
+            <button id="exportCsv" type="button">Export CSV</button>
+            <button id="exportJson" type="button">Export JSON</button>
+            <button id="copyLinks" type="button">Copy links</button>
+          </div>
+        </div>
+
+        <div class="refresh-row">
+          <label class="inline-control">
+            <input id="autoRefresh" type="checkbox" />
+            <span>Auto refresh</span>
+          </label>
+          <select id="refreshInterval" aria-label="Refresh interval">
+            <option value="60">1 min</option>
+            <option value="180">3 min</option>
+            <option value="300" selected>5 min</option>
+          </select>
+          <span id="lastUpdated">Not updated yet</span>
+        </div>
+
+        <div id="loadingState" class="loading-state" hidden aria-live="polite"></div>
+        <div id="status" class="status" hidden></div>
+        <div id="results" class="results table-mode"></div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
