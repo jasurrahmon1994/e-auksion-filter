@@ -17,7 +17,14 @@
           </div>
         </div>
 
-        <form id="filterForm" class="filters">
+        <nav class="workspace-tabs" aria-label="Workspace">
+          <button type="button" class="active" data-workspace="filter">Auction filter</button>
+          <button type="button" data-workspace="sharq">Sharq map</button>
+        </nav>
+
+        <section class="auction-candidates sharq-workspace" id="auctionCandidates" hidden></section>
+
+        <form id="filterForm" class="filters filter-workspace">
           <label>
             <span>Group ID</span>
             <input id="group" name="group" type="number" value="41" min="1" />
@@ -131,7 +138,7 @@
           </div>
         </form>
 
-        <section class="saved-panel">
+        <section class="saved-panel filter-workspace">
           <div class="panel-title">
             <h2>Saved Searches</h2>
             <button type="button" id="saveSearch">Save</button>
@@ -140,7 +147,7 @@
         </section>
       </aside>
 
-      <section class="content">
+      <section id="filterWorkspace" class="content workspace-panel">
         <header class="toolbar">
           <div>
             <h2 id="resultTitle">Lots</h2>
@@ -184,7 +191,93 @@
         <div id="status" class="status" hidden></div>
         <div id="results" class="results table-mode"></div>
       </section>
+
+      <section id="sharqWorkspace" class="content workspace-panel" hidden>
+        <header class="toolbar sharq-toolbar">
+          <div>
+            <h2>Sharq Bahori Interactive Map</h2>
+            <p id="sharqSummary">Data and plan images extracted from the provided presentation PDF.</p>
+          </div>
+          <div class="toolbar-actions">
+            <button id="resetSharqMap" title="Reset map" aria-label="Reset map">Reset</button>
+          </div>
+        </header>
+
+        <div class="sharq-layout">
+          <section class="sharq-map-panel">
+            <div class="section-label">Project map</div>
+            <div class="image-stage map-stage" id="projectMapStage">
+              <img src="/sharq-assets/page-10.jpg" alt="Sharq Bahori lot map from presentation" />
+            </div>
+          </section>
+
+          <aside class="sharq-info-panel">
+            <div class="section-label">TIP guide</div>
+            <h3 id="selectedLotTitle">Lot 46A</h3>
+            <p id="selectedLotMeta">Click a lot on the project map to update the building status panel.</p>
+            <div id="typeButtons" class="type-info-list"></div>
+          </aside>
+        </div>
+
+        <section class="block-layout-panel">
+          <div class="plan-browser-head">
+            <div>
+              <div class="section-label">Lot block layout</div>
+              <h3 id="blockLayoutTitle">46A block layout</h3>
+            </div>
+            <p id="blockLayoutMeta">Large complex: 10 buildings. Residential flats above commercial storey 1 are included in auction forecasting.</p>
+          </div>
+          <div class="block-layout-grid">
+            <div class="image-stage block-layout-stage">
+              <img id="blockLayoutImage" src="/sharq-assets/layout-full.png" alt="Selected lot block layout" />
+            </div>
+            <div class="building-mix" id="buildingMix"></div>
+          </div>
+        </section>
+
+        <section class="plan-browser">
+          <div class="plan-browser-head">
+            <div>
+              <div class="section-label">Type sketch</div>
+              <h3 id="activeTypeTitle">TIP I - 12 qavat</h3>
+            </div>
+            <div class="type-plan-picker">
+              <span>Sketch type</span>
+              <div class="type-plan-controls" id="typePlanButtons" aria-label="Select type sketch"></div>
+            </div>
+          </div>
+          <div class="plan-grid">
+            <div class="image-stage sketch-stage" id="typeSketchStage">
+              <img id="typeSketchImage" src="/sharq-assets/page-11.jpg" alt="Selected building type sketch" />
+              <div class="sketch-variant-controls" id="sketchVariantControls" hidden></div>
+            </div>
+            <aside class="flat-preview">
+              <div class="section-label">Flat plan</div>
+              <h3 id="flatTitle">Choose a flat on the sketch</h3>
+              <p id="flatMeta">The matching plan image will appear here.</p>
+              <button id="openFlatPlan" type="button" disabled>Open large plan</button>
+              <div class="flat-image-wrap">
+                <img id="flatImage" src="/sharq-assets/page-12.jpg" alt="Selected flat plan" hidden />
+                <div id="flatEmpty" class="flat-empty">No flat selected</div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="flat-strip" aria-label="Available flat plans">
+          <div class="section-label">All extracted flat plans</div>
+          <div id="flatThumbnails" class="flat-thumbnails"></div>
+        </section>
+      </section>
     </main>
+
+    <dialog id="flatPlanDialog" class="plan-dialog">
+      <div class="dialog-head">
+        <h3 id="dialogTitle">Flat plan</h3>
+        <button id="closeFlatPlan" type="button" aria-label="Close">Close</button>
+      </div>
+      <img id="dialogImage" alt="Large flat plan" />
+    </dialog>
 
     <script src="/app.js"></script>
   </body>

@@ -1,0 +1,664 @@
+{
+  "34A": {
+    "complex": "Large complex - 10 buildings",
+    "total": 452,
+    "sections": [
+      {
+        "building": "1",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 0,
+        "onSale": 0,
+        "later": 50,
+        "flats": "11-60",
+        "message": ""
+      },
+      {
+        "building": "2",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "3",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "4",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 0,
+        "onSale": 0,
+        "later": 50,
+        "flats": "11-60",
+        "message": ""
+      },
+      {
+        "building": "5",
+        "type": "TIP III - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "6",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 0,
+        "onSale": 0,
+        "later": 50,
+        "flats": "11-60",
+        "message": ""
+      },
+      {
+        "building": "7",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "8",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "9",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 0,
+        "onSale": 0,
+        "later": 50,
+        "flats": "11-60",
+        "message": ""
+      },
+      {
+        "building": "10",
+        "type": "TIP III - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      }
+    ]
+  },
+  "45D": {
+    "complex": "Large complex - 10 buildings",
+    "total": 0,
+    "sections": [
+      {
+        "building": "1",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "2",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 42,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "3",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 42,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "4",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "5",
+        "type": "TIP III - 9-storey",
+        "expected": 42,
+        "sold": 42,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "6",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "7",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 42,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "8",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 42,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "9",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "10",
+        "type": "TIP III - 9-storey",
+        "expected": 42,
+        "sold": 42,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      }
+    ]
+  },
+  "46A": {
+    "complex": "Large complex - 10 buildings",
+    "total": 185,
+    "sections": [
+      {
+        "building": "1",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 39,
+        "onSale": 10,
+        "later": 1,
+        "flats": "47",
+        "message": ""
+      },
+      {
+        "building": "2",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 11,
+        "onSale": 29,
+        "later": 2,
+        "flats": "8, 19",
+        "message": ""
+      },
+      {
+        "building": "3",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 15,
+        "onSale": 19,
+        "later": 8,
+        "flats": "11, 13, 18, 21-22, 24, 35, 37",
+        "message": ""
+      },
+      {
+        "building": "4",
+        "type": "12-storey, 4 flats/storey",
+        "expected": 40,
+        "sold": 34,
+        "onSale": 4,
+        "later": 2,
+        "flats": "21, 24",
+        "message": ""
+      },
+      {
+        "building": "5",
+        "type": "TIP III - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "6",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 45,
+        "onSale": 5,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "7",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "8",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "9",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 15,
+        "onSale": 33,
+        "later": 4,
+        "flats": "22, 42, 44, 49",
+        "message": ""
+      },
+      {
+        "building": "10",
+        "type": "TIP III - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      }
+    ]
+  },
+  "43D": {
+    "complex": "Small complex - 8 buildings",
+    "total": 0,
+    "sections": [
+      {
+        "building": "1",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "2",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 42,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "3",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "4",
+        "type": "TIP III - 7-storey",
+        "expected": 30,
+        "sold": 30,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "5",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "6",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 42,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "7",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "8",
+        "type": "TIP III - 7-storey",
+        "expected": 30,
+        "sold": 30,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      }
+    ]
+  },
+  "43F": {
+    "complex": "Small complex - 8 buildings",
+    "total": 294,
+    "sections": [
+      {
+        "building": "1",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "2",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "3",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 0,
+        "onSale": 0,
+        "later": 50,
+        "flats": "11-60",
+        "message": ""
+      },
+      {
+        "building": "4",
+        "type": "TIP III - 7-storey",
+        "expected": 30,
+        "sold": 0,
+        "onSale": 0,
+        "later": 30,
+        "flats": "13-42",
+        "message": ""
+      },
+      {
+        "building": "5",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 0,
+        "onSale": 0,
+        "later": 50,
+        "flats": "11-60",
+        "message": ""
+      },
+      {
+        "building": "6",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "7",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 0,
+        "onSale": 0,
+        "later": 50,
+        "flats": "11-60",
+        "message": ""
+      },
+      {
+        "building": "8",
+        "type": "TIP III - 7-storey",
+        "expected": 30,
+        "sold": 0,
+        "onSale": 0,
+        "later": 30,
+        "flats": "13-42",
+        "message": ""
+      }
+    ]
+  },
+  "44A": {
+    "complex": "Small complex - 8 buildings",
+    "total": 114,
+    "sections": [
+      {
+        "building": "1",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 46,
+        "onSale": 4,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "2",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "3",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "4",
+        "type": "TIP III - 7-storey",
+        "expected": 30,
+        "sold": 22,
+        "onSale": 8,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "5",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 34,
+        "onSale": 16,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "6",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 0,
+        "onSale": 0,
+        "later": 42,
+        "flats": "13-54",
+        "message": ""
+      },
+      {
+        "building": "7",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 0,
+        "onSale": 50,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "8",
+        "type": "TIP III - 7-storey",
+        "expected": 30,
+        "sold": 0,
+        "onSale": 0,
+        "later": 30,
+        "flats": "13-42",
+        "message": ""
+      }
+    ]
+  },
+  "44B": {
+    "complex": "Small complex - 8 buildings",
+    "total": 6,
+    "sections": [
+      {
+        "building": "1",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "2",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 11,
+        "onSale": 26,
+        "later": 5,
+        "flats": "14, 28, 31-32, 43",
+        "message": ""
+      },
+      {
+        "building": "3",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "4",
+        "type": "TIP III - 7-storey",
+        "expected": 30,
+        "sold": 30,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "5",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "6",
+        "type": "TIP II - 9-storey",
+        "expected": 42,
+        "sold": 14,
+        "onSale": 27,
+        "later": 1,
+        "flats": "29",
+        "message": ""
+      },
+      {
+        "building": "7",
+        "type": "TIP I - 12-storey",
+        "expected": 50,
+        "sold": 50,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      },
+      {
+        "building": "8",
+        "type": "TIP III - 7-storey",
+        "expected": 30,
+        "sold": 30,
+        "onSale": 0,
+        "later": 0,
+        "flats": "",
+        "message": "All expected residential flats are sold or on sale."
+      }
+    ]
+  }
+}

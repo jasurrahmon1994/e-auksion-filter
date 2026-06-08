@@ -245,7 +245,7 @@ function sortValue(lot, key) {
     price: Number(lot.start_price || 0),
     applications: applications(lot),
     status: lotStatus(lot),
-    auctionStart: lot.auction_date_str || "",
+    pricePerSqm: (() => { const p = Number(lot.start_price || 0); const a = Number(lotDetails(lot).totalArea || 0); return (p && a) ? p / a : 0; })(),
     auctionEnd: lot.order_end_time_str || "",
     views: Number(lot.view_count || 0),
     buildingLot: lotDetails(lot).buildingLot || "",
@@ -316,9 +316,9 @@ function renderTable(rows) {
     ["lot", "Lot"],
     ["name", "Name"],
     ["price", "Price"],
+    ["pricePerSqm", "Price/sq.m"],
     ["applications", "Apps"],
     ["status", "Status"],
-    ["auctionStart", "Auction start"],
     ["auctionEnd", "Auction end"],
     ["unitFloor", "Floor"],
     ["buildingFloors", "Floors"],
@@ -349,6 +349,13 @@ function renderTable(rows) {
   });
 }
 
+function pricePerSqm(lot) {
+  const price = Number(lot.start_price || 0);
+  const area = Number(lotDetails(lot).totalArea || 0);
+  if (!price || !area) return "-";
+  return money(Math.round(price / area));
+}
+
 function tableRow(lot) {
   const status = lotStatus(lot);
   const details = lotDetails(lot);
@@ -357,9 +364,9 @@ function tableRow(lot) {
       <td>${escapeHtml(lot.lot_number || lot.id)}</td>
       <td class="name-cell">${escapeHtml(lot.name || "-")}</td>
       <td>${money(lot.start_price)}</td>
+      <td>${pricePerSqm(lot)}</td>
       <td>${applications(lot)}</td>
       <td><span class="badge ${statusClass(status)}">${escapeHtml(status)}</span></td>
-      <td>${escapeHtml(lot.auction_date_str || "-")}</td>
       <td>${escapeHtml(lot.order_end_time_str || "-")}</td>
       <td>${escapeHtml(details.unitFloor || "-")}</td>
       <td>${escapeHtml(details.buildingFloors || "-")}</td>
@@ -391,8 +398,8 @@ function cardMarkup(lot) {
         </div>
         <div class="meta-list">
           <div class="meta-row"><span>Price</span><strong>${money(lot.start_price)} UZS</strong></div>
+          <div class="meta-row"><span>Price/sq.m</span><strong>${pricePerSqm(lot)} UZS</strong></div>
           <div class="meta-row"><span>Deposit</span><strong>${money(lot.zaklad_summa)} UZS</strong></div>
-          <div class="meta-row"><span>Auction start</span><strong>${escapeHtml(lot.auction_date_str || "-")}</strong></div>
           <div class="meta-row"><span>Auction end</span><strong>${escapeHtml(lot.order_end_time_str || "-")}</strong></div>
           <div class="meta-row"><span>Floor / floors</span><strong>${escapeHtml(details.unitFloor || "-")} / ${escapeHtml(details.buildingFloors || "-")}</strong></div>
           <div class="meta-row"><span>Total area</span><strong>${escapeHtml(details.totalArea || "-")} sq.m</strong></div>
@@ -608,7 +615,7 @@ function exportJson() {
 
 function exportCsv() {
   const rows = filteredRows();
-  const headers = ["lot_number", "name", "price", "deposit", "applications", "status", "auction_start", "auction_end", "unit_floor", "building_floors", "total_area", "rooms", "completion_term", "handover_status", "living_area", "kitchen_area", "auxiliary_area", "views", "url"];
+  const headers = ["lot_number", "name", "price", "price_per_sqm", "deposit", "applications", "status", "auction_end", "unit_floor", "building_floors", "total_area", "rooms", "completion_term", "handover_status", "living_area", "kitchen_area", "auxiliary_area", "views", "url"];
   const csvRows = [headers.join(",")];
 
   for (const lot of rows) {
@@ -619,10 +626,10 @@ function exportCsv() {
         lot.lot_number || lot.id,
         lot.name || "",
         lot.start_price || "",
+        (() => { const p = Number(lot.start_price || 0); const a = Number(details.totalArea || 0); return (p && a) ? Math.round(p / a) : ""; })(),
         lot.zaklad_summa || "",
         applications(lot),
         status,
-        lot.auction_date_str || "",
         lot.order_end_time_str || "",
         details.unitFloor || "",
         details.buildingFloors || "",
@@ -851,3 +858,497 @@ refreshIntervalSelect.addEventListener("change", updateAutoRefresh);
 
 renderSavedSearches();
 loadLots();
+
+const workspaceButtons = document.querySelectorAll("[data-workspace]");
+const filterWorkspace = document.querySelector("#filterWorkspace");
+const sharqWorkspace = document.querySelector("#sharqWorkspace");
+const filterWorkspaceControls = document.querySelectorAll(".filter-workspace");
+const sharqWorkspaceControls = document.querySelectorAll(".sharq-workspace");
+const projectMapStage = document.querySelector("#projectMapStage");
+const typeButtonsEl = document.querySelector("#typeButtons");
+const selectedLotTitleEl = document.querySelector("#selectedLotTitle");
+const selectedLotMetaEl = document.querySelector("#selectedLotMeta");
+const auctionCandidatesEl = document.querySelector("#auctionCandidates");
+const activeTypeTitleEl = document.querySelector("#activeTypeTitle");
+const typePlanButtonsEl = document.querySelector("#typePlanButtons");
+const typeSketchStage = document.querySelector("#typeSketchStage");
+const typeSketchImage = document.querySelector("#typeSketchImage");
+const sketchVariantControlsEl = document.querySelector("#sketchVariantControls");
+const flatTitleEl = document.querySelector("#flatTitle");
+const flatMetaEl = document.querySelector("#flatMeta");
+const flatImageEl = document.querySelector("#flatImage");
+const flatEmptyEl = document.querySelector("#flatEmpty");
+const flatThumbnailsEl = document.querySelector("#flatThumbnails");
+const openFlatPlanButton = document.querySelector("#openFlatPlan");
+const resetSharqMapButton = document.querySelector("#resetSharqMap");
+const blockLayoutTitleEl = document.querySelector("#blockLayoutTitle");
+const blockLayoutMetaEl = document.querySelector("#blockLayoutMeta");
+const blockLayoutImageEl = document.querySelector("#blockLayoutImage");
+const buildingMixEl = document.querySelector("#buildingMix");
+const flatPlanDialog = document.querySelector("#flatPlanDialog");
+const dialogTitleEl = document.querySelector("#dialogTitle");
+const dialogImageEl = document.querySelector("#dialogImage");
+const closeFlatPlanButton = document.querySelector("#closeFlatPlan");
+
+const SHARQ_ASSETS = "/sharq-assets/";
+
+const flatPlans = {
+  t1a: { title: "TIP I - 2 xonali", area: "57.94-58.20 m2", rooms: "2 rooms", image: "page-12.jpg" },
+  t1b: { title: "TIP I - 2 xonali", area: "53.71-54.66 m2", rooms: "2 rooms", image: "page-13.jpg" },
+  t1c: { title: "TIP I - 2 xonali", area: "62.27-63.58 m2", rooms: "2 rooms", image: "page-14.jpg" },
+  t1d: { title: "TIP I - 3 xonali", area: "76.60-78.06 m2", rooms: "3 rooms", image: "page-15.jpg" },
+  t1e: { title: "TIP I - 3 xonali", area: "81.77-82.84 m2", rooms: "3 rooms", image: "page-16.jpg" },
+  t2a: { title: "TIP II - 3 xonali", area: "87.89-89.29 m2", rooms: "3 rooms", image: "page-18.jpg" },
+  t2b: { title: "TIP II - 3 xonali", area: "79.70-80.12 m2", rooms: "3 rooms", image: "page-19.jpg" },
+  t2c: { title: "TIP II - 2 xonali", area: "68.95-70.03 m2", rooms: "2 rooms", image: "page-20.jpg" },
+  t34a: { title: "TIP III/IV - 3 xonali", area: "86.77-90.50 m2", rooms: "3 rooms", image: "page-22.jpg" },
+  t34b: { title: "TIP III/IV - 2 xonali", area: "71.50-74.20 m2", rooms: "2 rooms", image: "page-23.jpg" },
+  t34c: { title: "TIP III/IV - 2 xonali", area: "59.10-63.52 m2", rooms: "2 rooms", image: "page-24.jpg" },
+};
+
+const buildingTypes = [
+  {
+    id: "tip1",
+    title: "TIP I - 12 qavat",
+    note: "Five apartment plan variants are shown in the PDF after this sketch.",
+    image: "tip-i-sketch-enhanced.png",
+    imageVariants: [
+      { id: "enhanced", label: "Clean", image: "tip-i-sketch-enhanced.png" },
+      { id: "original", label: "Original", image: "page-11.jpg" },
+    ],
+    zones: [
+      { plan: "t1a", label: "2 xonali", x: 31.5, y: 41.5, w: 19, h: 18 },
+      { plan: "t1b", label: "2 xonali", x: 31.5, y: 76.5, w: 19, h: 25 },
+      { plan: "t1c", label: "2 xonali", x: 50, y: 40.5, w: 18, h: 18 },
+      { plan: "t1d", label: "3 xonali", x: 70.5, y: 40.5, w: 19, h: 18 },
+      { plan: "t1e", label: "3 xonali", x: 72.5, y: 76.5, w: 20, h: 25 },
+    ],
+  },
+  {
+    id: "tip2",
+    title: "TIP II - 9 qavat",
+    note: "Repeated mirrored units point to the same matching plan slide.",
+    image: "tip-ii-sketch-enhanced.png",
+    imageVariants: [
+      { id: "enhanced", label: "Clean", image: "tip-ii-sketch-enhanced.png" },
+      { id: "original", label: "Original", image: "page-17.jpg" },
+    ],
+    zones: [
+      { plan: "t2a", label: "3 xonali", x: 31, y: 57, w: 16, h: 25 },
+      { plan: "t2c", label: "2 xonali", x: 47, y: 57, w: 13, h: 22 },
+      { plan: "t2c", label: "2 xonali", x: 57.5, y: 57, w: 13, h: 22 },
+      { plan: "t2a", label: "3 xonali", x: 78, y: 57, w: 16, h: 25 },
+      { plan: "t2b", label: "3 xonali", x: 42, y: 79, w: 16, h: 23 },
+      { plan: "t2b", label: "3 xonali", x: 66, y: 79, w: 16, h: 23 },
+    ],
+  },
+  {
+    id: "tip34",
+    title: "TIP III - 7/9 qavat",
+    note: "TIP III uses the same storey plan: 9 storeys in 10-building complexes, 7 storeys in 8-building complexes.",
+    image: "tip-iii-sketch-enhanced.png",
+    imageVariants: [
+      { id: "enhanced", label: "Clean", image: "tip-iii-sketch-enhanced.png" },
+      { id: "original", label: "Original", image: "page-21.jpg" },
+    ],
+    zones: [
+      { plan: "t34a", label: "3 xonali", x: 30, y: 68, w: 17, h: 36 },
+      { plan: "t34b", label: "2 xonali", x: 43, y: 50, w: 17, h: 24 },
+      { plan: "t34b", label: "2 xonali", x: 62, y: 50, w: 17, h: 24 },
+      { plan: "t34a", label: "3 xonali", x: 77, y: 68, w: 17, h: 36 },
+      { plan: "t34c", label: "2 xonali", x: 47, y: 78, w: 16, h: 22 },
+      { plan: "t34c", label: "2 xonali", x: 62, y: 78, w: 16, h: 22 },
+    ],
+  },
+];
+
+const layoutVariants = {
+  full: {
+    image: "layout-full.png",
+    description: "Large complex: 10 buildings. Residential flats above commercial storey 1 are included in auction forecasting.",
+    mix: [
+      ["10", "buildings"],
+      ["452", "expected residential flats"],
+    ],
+  },
+  sideCenterRemoved: {
+    image: "layout-small-44a-enhanced.png",
+    description: "Small complex: 8 buildings. Residential flats above commercial storey 1 are included in auction forecasting.",
+    mix: [
+      ["8", "buildings"],
+      ["344", "expected residential flats"],
+    ],
+  },
+};
+
+const lotMarkers = [
+  { id: "34A", x: 39.5, y: 13.3, layout: "full", note: "Large 10-building complex." },
+  { id: "43F", x: 36.2, y: 65.2, layout: "sideCenterRemoved", note: "Small 8-building complex." },
+  { id: "43D", x: 42.7, y: 62.9, layout: "sideCenterRemoved", note: "Small 8-building complex." },
+  { id: "45D", x: 50.9, y: 58.6, layout: "full", note: "Large 10-building complex." },
+  { id: "44B", x: 49.3, y: 68.6, layout: "sideCenterRemoved", note: "Small 8-building complex." },
+  { id: "46A", x: 57.8, y: 65.0, layout: "full", note: "Large 10-building complex." },
+  { id: "44A", x: 54.6, y: 76.7, layout: "sideCenterRemoved", note: "Small 8-building complex." },
+];
+
+let futureAuctionCandidates = {
+  "34A": {
+    complex: "Large complex - 10 buildings",
+    total: 452,
+    sections: [
+      { building: "1", type: "TIP I - 12-storey", expected: 50, sold: 0, onSale: 0, later: 50, flats: "11-60" },
+      { building: "2", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "3", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "4", type: "TIP I - 12-storey", expected: 50, sold: 0, onSale: 0, later: 50, flats: "11-60" },
+      { building: "5", type: "TIP III - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "6", type: "TIP I - 12-storey", expected: 50, sold: 0, onSale: 0, later: 50, flats: "11-60" },
+      { building: "7", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "8", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "9", type: "TIP I - 12-storey", expected: 50, sold: 0, onSale: 0, later: 50, flats: "11-60" },
+      { building: "10", type: "TIP III - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+    ],
+  },
+  "43D": { complex: "Small complex - 8 buildings", total: 0, sections: [] },
+  "43F": {
+    complex: "Small complex - 8 buildings",
+    total: 294,
+    sections: [
+      { building: "2", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "3", type: "TIP I - 12-storey", expected: 50, sold: 0, onSale: 0, later: 50, flats: "11-60" },
+      { building: "4", type: "TIP III - 7-storey", expected: 30, sold: 0, onSale: 0, later: 30, flats: "13-42" },
+      { building: "5", type: "TIP I - 12-storey", expected: 50, sold: 0, onSale: 0, later: 50, flats: "11-60" },
+      { building: "6", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "7", type: "TIP I - 12-storey", expected: 50, sold: 0, onSale: 0, later: 50, flats: "11-60" },
+      { building: "8", type: "TIP III - 7-storey", expected: 30, sold: 0, onSale: 0, later: 30, flats: "13-42" },
+    ],
+  },
+  "44A": {
+    complex: "Small complex - 8 buildings",
+    total: 115,
+    sections: [
+      { building: "2", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "5", type: "TIP I - 12-storey", expected: 50, sold: 33, onSale: 16, later: 1, flats: "21" },
+      { building: "6", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "8", type: "TIP III - 7-storey", expected: 30, sold: 0, onSale: 0, later: 30, flats: "13-42" },
+    ],
+  },
+  "44B": {
+    complex: "Small complex - 8 buildings",
+    total: 7,
+    sections: [
+      { building: "2", type: "TIP II - 9-storey", expected: 42, sold: 10, onSale: 26, later: 6, flats: "14, 28, 31-32, 34, 43" },
+      { building: "6", type: "TIP II - 9-storey", expected: 42, sold: 14, onSale: 27, later: 1, flats: "29" },
+    ],
+  },
+  "45D": {
+    complex: "Large complex - 10 buildings",
+    total: 119,
+    sections: [
+      { building: "1", type: "TIP I - 12-storey", expected: 50, sold: 31, onSale: 0, later: 19, flats: "12-14, 17-18, 22-23, 27-28, 32-33, 37-38, 42-43, 47-48, 52, 57" },
+      { building: "2", type: "TIP II - 9-storey", expected: 42, sold: 41, onSale: 0, later: 1, flats: "14" },
+      { building: "3", type: "TIP II - 9-storey", expected: 42, sold: 40, onSale: 0, later: 2, flats: "18, 25" },
+      { building: "4", type: "TIP I - 12-storey", expected: 50, sold: 18, onSale: 0, later: 32, flats: "12-14, 17-19, 22-24, 26-29, 31-35, 37-39, 42-44, 47-49, 52, 56-59" },
+      { building: "5", type: "TIP III - 9-storey", expected: 42, sold: 8, onSale: 0, later: 34, flats: "13-19, 21-36, 39-40, 43, 45-46, 49-54" },
+      { building: "6", type: "TIP I - 12-storey", expected: 50, sold: 19, onSale: 0, later: 31, flats: "12-14, 17-19, 22-24, 27-29, 32-34, 37-39, 42-44, 47-49, 52-54, 56-59" },
+    ],
+  },
+  "46A": {
+    complex: "Large complex - 10 buildings",
+    total: 242,
+    sections: [
+      { building: "1", type: "TIP I - 12-storey", expected: 50, sold: 37, onSale: 10, later: 3, flats: "18, 47, 52" },
+      { building: "2", type: "TIP II - 9-storey", expected: 42, sold: 9, onSale: 29, later: 4, flats: "8, 19, 27, 36" },
+      { building: "3", type: "TIP II - 9-storey", expected: 42, sold: 9, onSale: 19, later: 14, flats: "9, 11, 13, 18, 21-22, 24, 28-29, 31-32, 35, 37, 39" },
+      { building: "4", type: "12-storey, 4 flats/storey", expected: 40, sold: 0, onSale: 4, later: 36, flats: "5-24, 26-28, 30-32, 34-36, 38-44" },
+      { building: "5", type: "TIP III - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "7", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "8", type: "TIP II - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+      { building: "9", type: "TIP I - 12-storey", expected: 50, sold: 0, onSale: 33, later: 17, flats: "8, 12-13, 17-18, 22-23, 27, 33, 38, 42-44, 48-49, 54, 56" },
+      { building: "10", type: "TIP III - 9-storey", expected: 42, sold: 0, onSale: 0, later: 42, flats: "13-54" },
+    ],
+  },
+};
+
+let sharqState = {
+  lotId: "46A",
+  typeId: "tip1",
+  planId: null,
+  sketchVariantId: "enhanced",
+};
+
+function assetUrl(filename) {
+  return `${SHARQ_ASSETS}${filename}`;
+}
+
+async function loadSharqCandidates() {
+  try {
+    const response = await fetch("/sharq-candidates.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Candidates request failed with ${response.status}`);
+    futureAuctionCandidates = await response.json();
+    renderAuctionCandidates();
+  } catch (error) {
+    console.warn("Using embedded Sharq candidate fallback.", error);
+  }
+}
+
+function setWorkspace(workspace) {
+  const showSharq = workspace === "sharq";
+  filterWorkspace.hidden = showSharq;
+  sharqWorkspace.hidden = !showSharq;
+  filterWorkspaceControls.forEach((el) => {
+    el.hidden = showSharq;
+  });
+  sharqWorkspaceControls.forEach((el) => {
+    el.hidden = !showSharq;
+  });
+  workspaceButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.workspace === workspace);
+  });
+}
+
+function renderProjectMarkers() {
+  projectMapStage.querySelectorAll(".map-marker").forEach((marker) => marker.remove());
+  lotMarkers.forEach((lot) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "map-marker";
+    button.textContent = lot.id;
+    button.style.left = `${lot.x}%`;
+    button.style.top = `${lot.y}%`;
+    button.title = lot.note;
+    button.classList.toggle("active", lot.id === sharqState.lotId);
+    button.addEventListener("click", () => selectLot(lot.id));
+    projectMapStage.appendChild(button);
+  });
+}
+
+function renderTypeButtons() {
+  typeButtonsEl.innerHTML = buildingTypes
+    .map((type) => `
+      <article class="type-info-card">
+        <strong>${escapeHtml(type.title)}</strong>
+        <span>${escapeHtml(type.note)}</span>
+      </article>
+    `)
+    .join("");
+}
+
+function renderTypePlanButtons() {
+  typePlanButtonsEl.innerHTML = buildingTypes
+    .map((type) => `
+      <button type="button" data-type-plan="${type.id}" class="${type.id === sharqState.typeId ? "active" : ""}">
+        ${escapeHtml(type.title)}
+      </button>
+    `)
+    .join("");
+
+  typePlanButtonsEl.querySelectorAll("[data-type-plan]").forEach((button) => {
+    button.addEventListener("click", () => selectType(button.dataset.typePlan));
+  });
+}
+
+function renderTypeSketch() {
+  const type = buildingTypes.find((item) => item.id === sharqState.typeId) || buildingTypes[0];
+  const variant = selectedSketchVariant(type);
+  activeTypeTitleEl.textContent = type.title;
+  typeSketchImage.src = assetUrl(variant.image);
+  typeSketchImage.alt = `${type.title} sketch from presentation`;
+  renderSketchVariantControls(type);
+  typeSketchStage.querySelectorAll(".zone-marker").forEach((zone) => zone.remove());
+
+  type.zones.forEach((zone, index) => {
+    const label = document.createElement("button");
+    label.type = "button";
+    label.className = "zone-marker";
+    label.textContent = `${index + 1}. ${zone.label}`;
+    label.style.left = `${zone.x}%`;
+    label.style.top = `${Math.max(8, zone.y - zone.h / 2 - 4)}%`;
+    label.classList.toggle("active", zone.plan === sharqState.planId);
+    label.addEventListener("click", () => selectFlat(zone.plan));
+    typeSketchStage.appendChild(label);
+  });
+}
+
+function selectedSketchVariant(type) {
+  if (!type.imageVariants?.length) return { id: "default", label: "Default", image: type.image };
+  return type.imageVariants.find((item) => item.id === sharqState.sketchVariantId) || type.imageVariants[0];
+}
+
+function renderSketchVariantControls(type) {
+  if (!type.imageVariants?.length) {
+    sketchVariantControlsEl.hidden = true;
+    sketchVariantControlsEl.innerHTML = "";
+    return;
+  }
+
+  sketchVariantControlsEl.hidden = false;
+  sketchVariantControlsEl.innerHTML = type.imageVariants
+    .map((variant) => `
+      <button type="button" data-sketch-variant="${variant.id}" class="${variant.id === selectedSketchVariant(type).id ? "active" : ""}">
+        ${escapeHtml(variant.label)}
+      </button>
+    `)
+    .join("");
+
+  sketchVariantControlsEl.querySelectorAll("[data-sketch-variant]").forEach((button) => {
+    button.addEventListener("click", () => {
+      sharqState.sketchVariantId = button.dataset.sketchVariant;
+      renderTypeSketch();
+    });
+  });
+}
+
+function renderFlatThumbnails() {
+  flatThumbnailsEl.innerHTML = Object.entries(flatPlans)
+    .map(([id, plan]) => `
+      <button type="button" class="flat-thumb ${id === sharqState.planId ? "active" : ""}" data-plan="${id}">
+        <img src="${assetUrl(plan.image)}" alt="${escapeHtml(plan.title)} thumbnail" loading="lazy" />
+        <strong>${escapeHtml(plan.title)}</strong>
+        <span>${escapeHtml(plan.area)}</span>
+      </button>
+    `)
+    .join("");
+
+  flatThumbnailsEl.querySelectorAll("[data-plan]").forEach((button) => {
+    button.addEventListener("click", () => selectFlat(button.dataset.plan));
+  });
+}
+
+function selectLot(lotId) {
+  sharqState.lotId = lotId;
+  const marker = lotMarkers.find((item) => item.id === lotId);
+  selectedLotTitleEl.textContent = `Lot ${lotId}`;
+  selectedLotMetaEl.textContent = marker?.note || "Shown in the overview map.";
+  renderProjectMarkers();
+  renderAuctionCandidates();
+  renderBlockLayout();
+}
+
+function renderAuctionCandidates() {
+  const candidates = futureAuctionCandidates[sharqState.lotId] || { total: 0, sections: [] };
+  const sections = candidates.sections || [];
+  const total = sections.reduce((sum, item) => sum + item.later, 0);
+
+  if (!sections.length) {
+    auctionCandidatesEl.innerHTML = `
+      <div class="candidate-head">
+        <strong>Building status</strong>
+        <span>0 flats</span>
+      </div>
+      <p>${escapeHtml(candidates.complex || "No complex data")} - no building inventory available.</p>
+    `;
+    return;
+  }
+
+  auctionCandidatesEl.innerHTML = `
+    <div class="candidate-head">
+      <strong>${escapeHtml(sharqState.lotId)} building status</strong>
+      <span>${total} flats</span>
+    </div>
+    <p>${escapeHtml(candidates.complex)}. Every building is listed; storey 1 commercial space is excluded.</p>
+    <div class="candidate-list">
+      ${sections
+        .map((item) => `
+          <div class="candidate-row ${item.later ? "" : "is-complete"}">
+            <span>${escapeHtml(sharqState.lotId)}/${escapeHtml(item.building)}</span>
+            <strong>${escapeHtml(item.type)}</strong>
+            <em>${escapeHtml(item.later ? `${item.later} later` : "0 later")}</em>
+            <small>${escapeHtml(item.later ? `Expected ${item.expected}, sold ${item.sold}, on sale ${item.onSale}` : item.message || "All expected residential flats are sold or on sale.")}</small>
+          </div>
+        `)
+        .join("")}
+    </div>
+  `;
+}
+
+function renderBlockLayout() {
+  const marker = lotMarkers.find((item) => item.id === sharqState.lotId) || lotMarkers.find((item) => item.id === "46A");
+  const layout = layoutVariants[marker.layout] || layoutVariants.full;
+  blockLayoutTitleEl.textContent = `${marker.id} block layout`;
+  blockLayoutMetaEl.textContent = layout.description;
+  blockLayoutImageEl.src = assetUrl(layout.image);
+  blockLayoutImageEl.alt = `${marker.id} block layout`;
+  buildingMixEl.innerHTML = layout.mix
+    .map(([count, label]) => `
+      <div class="mix-item">
+        <strong>${escapeHtml(count)}</strong>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `)
+    .join("");
+}
+
+function selectType(typeId) {
+  sharqState.typeId = typeId;
+  sharqState.planId = null;
+  const type = buildingTypes.find((item) => item.id === typeId);
+  sharqState.sketchVariantId = type?.imageVariants?.[0]?.id || "default";
+  renderTypePlanButtons();
+  renderTypeSketch();
+  renderFlatPreview();
+  renderFlatThumbnails();
+}
+
+function selectFlat(planId) {
+  sharqState.planId = planId;
+  renderTypeSketch();
+  renderFlatPreview();
+  renderFlatThumbnails();
+}
+
+function renderFlatPreview() {
+  const plan = sharqState.planId ? flatPlans[sharqState.planId] : null;
+
+  if (!plan) {
+    flatTitleEl.textContent = "Choose a flat on the sketch";
+    flatMetaEl.textContent = "The matching plan image will appear here.";
+    flatImageEl.hidden = true;
+    flatEmptyEl.hidden = false;
+    openFlatPlanButton.disabled = true;
+    return;
+  }
+
+  flatTitleEl.textContent = plan.title;
+  flatMetaEl.textContent = `${plan.rooms} | ${plan.area}`;
+  flatImageEl.src = assetUrl(plan.image);
+  flatImageEl.alt = `${plan.title} plan`;
+  flatImageEl.hidden = false;
+  flatEmptyEl.hidden = true;
+  openFlatPlanButton.disabled = false;
+}
+
+function openSelectedFlatPlan() {
+  const plan = flatPlans[sharqState.planId];
+  if (!plan) return;
+  dialogTitleEl.textContent = `${plan.title} | ${plan.area}`;
+  dialogImageEl.src = assetUrl(plan.image);
+  dialogImageEl.alt = `${plan.title} large plan`;
+  flatPlanDialog.showModal();
+}
+
+function resetSharqMap() {
+  sharqState = { lotId: "46A", typeId: "tip1", planId: null, sketchVariantId: "enhanced" };
+  selectLot(sharqState.lotId);
+  renderTypeButtons();
+  renderTypePlanButtons();
+  renderTypeSketch();
+  renderFlatPreview();
+  renderFlatThumbnails();
+}
+
+function initSharqMap() {
+  workspaceButtons.forEach((button) => {
+    button.addEventListener("click", () => setWorkspace(button.dataset.workspace));
+  });
+  resetSharqMapButton.addEventListener("click", resetSharqMap);
+  openFlatPlanButton.addEventListener("click", openSelectedFlatPlan);
+  flatImageEl.addEventListener("click", openSelectedFlatPlan);
+  closeFlatPlanButton.addEventListener("click", () => flatPlanDialog.close());
+  flatPlanDialog.addEventListener("click", (event) => {
+    if (event.target === flatPlanDialog) flatPlanDialog.close();
+  });
+  resetSharqMap();
+  loadSharqCandidates();
+}
+
+initSharqMap();

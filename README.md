@@ -14,6 +14,28 @@ Then open:
 http://localhost:5177
 ```
 
+## Update Sharq Candidates
+
+When `reports\All.xlsx` changes, regenerate the Sharq possible later-auction data:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\generate_sharq_candidates.py
+```
+
+The script reads the `All` and `OnSale` sheets and writes `public\sharq-candidates.json`, which the Sharq map loads on refresh.
+
+## Deploy To Render
+
+This repo includes `render.yaml` for a Render web service.
+
+1. Push the repo to GitHub/GitLab.
+2. In Render, create a new Blueprint or Web Service from the repo.
+3. Use the default commands from `render.yaml`:
+   - Build command: `npm install`
+   - Start command: `npm start`
+
+The server reads `process.env.PORT`, which Render provides for web services.
+
 ## Notes
 
 - The local server proxies requests to `https://e-auksion.uz/api/front/lots`.
