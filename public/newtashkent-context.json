@@ -1,0 +1,312 @@
+{
+  "source": "https://www.newtashkent.uz/maps/kmz-data",
+  "sourceLocal": "reports/newtashkent-kmz-data.json",
+  "mapCenter": [
+    69.485184,
+    41.295214
+  ],
+  "mapZoom": 14,
+  "maps": {
+    "twoD": "https://www.newtashkent.uz/en/maps/lod-map-two",
+    "threeD": "https://www.newtashkent.uz/en/maps/lod-map-three",
+    "threeDFrame": "https://yangitoshkent360.uz"
+  },
+  "featureCount": 1723,
+  "bbox": {
+    "west": 69.40610245200008,
+    "south": 41.23287413906473,
+    "east": 69.52434321400006,
+    "north": 41.3207485870644
+  },
+  "topBlocks": [
+    {
+      "name": "Shahar hududi",
+      "count": 814
+    },
+    {
+      "name": "Jamoatchilik markazi",
+      "count": 240
+    },
+    {
+      "name": "Mavjud hudud",
+      "count": 228
+    },
+    {
+      "name": "Mahalla parki",
+      "count": 164
+    },
+    {
+      "name": "Maxsus hudud",
+      "count": 87
+    },
+    {
+      "name": "Tuman parki",
+      "count": 72
+    },
+    {
+      "name": "Kommunal zaxira",
+      "count": 65
+    },
+    {
+      "name": "Shahar parki",
+      "count": 44
+    },
+    {
+      "name": "Arxeologik hudud",
+      "count": 8
+    },
+    {
+      "name": "Qishloq xo'jaligi yerlari",
+      "count": 1
+    }
+  ],
+  "topFunctions": [
+    {
+      "name": "Kop qavatli turar-joy",
+      "count": 280
+    },
+    {
+      "name": "Mavjud mahalla(Rekonstruksiya)",
+      "count": 195
+    },
+    {
+      "name": "Ofis",
+      "count": 191
+    },
+    {
+      "name": "Yashil ochiq maydon",
+      "count": 177
+    },
+    {
+      "name": "Yakka tartibdagi turar-joy, kottej",
+      "count": 168
+    },
+    {
+      "name": "Ijtimoiy obyekt(Bogcha)",
+      "count": 83
+    },
+    {
+      "name": "Ijtimoiy obyekt",
+      "count": 69
+    },
+    {
+      "name": "Tuman parki",
+      "count": 63
+    },
+    {
+      "name": "Ijtimoiy obyekt(Maktab)",
+      "count": 56
+    },
+    {
+      "name": "Texnik-sanoat, Bio-sanoat",
+      "count": 55
+    },
+    {
+      "name": "Villa",
+      "count": 53
+    },
+    {
+      "name": "Shahar parki",
+      "count": 43
+    },
+    {
+      "name": "Mamuriy markaz",
+      "count": 33
+    },
+    {
+      "name": "Utilitalar(Zahirasi)",
+      "count": 31
+    },
+    {
+      "name": "Sanoat, logistika, ishlab chiqarish",
+      "count": 31
+    }
+  ],
+  "nearMapCenter": [
+    {
+      "distanceMeters": 54,
+      "transekt": "TS",
+      "block": "Maxsus hudud",
+      "function1": "Mamuriy markaz",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 3.06,
+      "floors": 5
+    },
+    {
+      "distanceMeters": 120,
+      "transekt": "TS",
+      "block": "Maxsus hudud",
+      "function1": "Mamuriy markaz",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 4.95,
+      "floors": 6
+    },
+    {
+      "distanceMeters": 199,
+      "transekt": "TS",
+      "block": "Maxsus hudud",
+      "function1": "Mamuriy markaz",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 3.14,
+      "floors": 5
+    },
+    {
+      "distanceMeters": 211,
+      "transekt": "TS",
+      "block": "Maxsus hudud",
+      "function1": "Mamuriy markaz",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 3.14,
+      "floors": 5
+    },
+    {
+      "distanceMeters": 237,
+      "transekt": "T2",
+      "block": "Shahar parki",
+      "function1": "Shahar parki",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 0.72,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 262,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Savdo-sotiq, oziq-ovqat",
+      "areaHa": 1.82,
+      "floors": 12
+    },
+    {
+      "distanceMeters": 265,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Ijtimoiy obyekt",
+      "areaHa": 1.82,
+      "floors": 12
+    },
+    {
+      "distanceMeters": 282,
+      "transekt": "T8",
+      "block": "Maxsus hudud",
+      "function1": "Mamuriy markaz",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 0,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 290,
+      "transekt": "TS",
+      "block": "Maxsus hudud",
+      "function1": "Mamuriy markaz",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 2.23,
+      "floors": 8
+    },
+    {
+      "distanceMeters": 308,
+      "transekt": "T8",
+      "block": "Maxsus hudud",
+      "function1": "Mamuriy markaz",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 0.78,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 310,
+      "transekt": "T2",
+      "block": "Shahar parki",
+      "function1": "Shahar parki",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 0.73,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 315,
+      "transekt": "T2",
+      "block": "Shahar parki",
+      "function1": "Shahar parki",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 0.73,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 334,
+      "transekt": "T2",
+      "block": "Shahar parki",
+      "function1": "Shahar parki",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 0.56,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 334,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Savdo-sotiq, oziq-ovqat",
+      "areaHa": 1.82,
+      "floors": 12
+    },
+    {
+      "distanceMeters": 344,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+      "areaHa": 1.82,
+      "floors": 12
+    },
+    {
+      "distanceMeters": 381,
+      "transekt": "T2",
+      "block": "Shahar parki",
+      "function1": "Shahar parki",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 0.72,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 383,
+      "transekt": "T2",
+      "block": "Shahar parki",
+      "function1": "Shahar parki",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 2.09,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 394,
+      "transekt": "T4",
+      "block": "Jamoatchilik markazi",
+      "function1": "Ijtimoiy obyekt(Maktab)",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 1.98,
+      "floors": 4
+    },
+    {
+      "distanceMeters": 405,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Savdo-sotiq, oziq-ovqat",
+      "areaHa": 1.3,
+      "floors": 12
+    },
+    {
+      "distanceMeters": 407,
+      "transekt": "TS",
+      "block": "Maxsus hudud",
+      "function1": "Mamuriy markaz",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 1.54,
+      "floors": 11
+    }
+  ],
+  "insights": [
+    "The official 2D map is an ArcGIS satellite map centered near New Tashkent's core planning area.",
+    "Near the official map center, the closest polygons include administrative center, city park, mixed-use residential, school, and hotel/retail functions.",
+    "This context is useful for long-term area quality, but it is not precise enough to rank individual Sharq Bahori flats without exact building coordinates."
+  ]
+}

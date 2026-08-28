@@ -8,7 +8,7 @@
   </head>
   <body>
     <main class="app-shell">
-      <aside class="sidebar">
+      <header class="top-nav">
         <div class="brand-block">
           <div class="brand-mark">EA</div>
           <div>
@@ -21,94 +21,31 @@
           <button type="button" class="active" data-workspace="filter">Auction filter</button>
           <button type="button" data-workspace="sharq">Sharq map</button>
         </nav>
+      </header>
 
-        <section class="auction-candidates sharq-workspace" id="auctionCandidates" hidden></section>
+      <section class="auction-candidates sharq-workspace" id="auctionCandidates" hidden></section>
 
-        <form id="filterForm" class="filters filter-workspace">
+      <section id="filterWorkspace" class="content workspace-panel">
+        <form id="filterForm" class="top-filters filter-workspace">
           <label>
-            <span>Group ID</span>
-            <input id="group" name="group" type="number" value="41" min="1" />
+            <span>Type</span>
+            <select id="index" name="index">
+              <option value="1">New lots</option>
+              <option value="2">Completed</option>
+              <option value="3">Current bidding</option>
+              <option value="5">Search results</option>
+            </select>
           </label>
 
           <label>
-            <span>Category ID</span>
-            <input id="category" name="category" type="number" value="169" min="1" />
+            <span>Per page</span>
+            <select id="perPage" name="perPage">
+              <option>12</option>
+              <option>24</option>
+              <option>48</option>
+              <option>100</option>
+            </select>
           </label>
-
-          <label>
-            <span>Lot number or name</span>
-            <input id="query" name="q" type="search" placeholder="23745576 or 46A/2" />
-          </label>
-
-          <label>
-            <span>Auction start date</span>
-            <input id="auctionDate" name="date" type="text" placeholder="DD.MM.YYYY" />
-          </label>
-
-          <div class="split">
-            <label>
-              <span>Auction start from</span>
-              <input id="dateFrom" name="datef" type="text" placeholder="DD.MM.YYYY" />
-            </label>
-
-            <label>
-              <span>Auction start to</span>
-              <input id="dateTo" name="datet" type="text" placeholder="DD.MM.YYYY" />
-            </label>
-          </div>
-
-          <div class="date-presets" aria-label="Date presets">
-            <button type="button" data-preset="today">Today</button>
-            <button type="button" data-preset="this-month">This month</button>
-            <button type="button" data-preset="last-month">Last month</button>
-            <button type="button" data-preset="last-90">Last 90 days</button>
-          </div>
-
-          <div class="split">
-            <label>
-              <span>Min price</span>
-              <input id="minPrice" name="minPrice" type="text" inputmode="numeric" placeholder="0" />
-            </label>
-
-            <label>
-              <span>Max price</span>
-              <input id="maxPrice" name="maxPrice" type="text" inputmode="numeric" placeholder="Any" />
-            </label>
-          </div>
-
-          <div class="split">
-            <label>
-              <span>Min applications</span>
-              <input id="minApplications" name="minApplications" type="number" min="0" placeholder="0" />
-            </label>
-
-            <label>
-              <span>Max applications</span>
-              <input id="maxApplications" name="maxApplications" type="number" min="0" placeholder="Any" />
-            </label>
-          </div>
-
-          <div class="split">
-            <label>
-              <span>Type</span>
-              <select id="index" name="index">
-                <option value="1">New lots</option>
-                <option value="2">Completed</option>
-                <option value="3">Current bidding</option>
-                <option value="5">Search results</option>
-              </select>
-            </label>
-
-            <label>
-              <span>Per page</span>
-              <select id="perPage" name="perPage">
-                <option>12</option>
-                <option>24</option>
-                <option>48</option>
-                <option>100</option>
-              </select>
-            </label>
-          </div>
 
           <label>
             <span>Completed status</span>
@@ -131,23 +68,8 @@
               <option value="8">Least viewed</option>
             </select>
           </label>
-
-          <div class="actions">
-            <button type="submit" class="primary">Search</button>
-            <button type="button" id="resetButton">Reset</button>
-          </div>
         </form>
 
-        <section class="saved-panel filter-workspace">
-          <div class="panel-title">
-            <h2>Saved Searches</h2>
-            <button type="button" id="saveSearch">Save</button>
-          </div>
-          <div id="savedSearches" class="saved-list"></div>
-        </section>
-      </aside>
-
-      <section id="filterWorkspace" class="content workspace-panel">
         <header class="toolbar">
           <div>
             <h2 id="resultTitle">Lots</h2>
@@ -160,17 +82,16 @@
           </div>
         </header>
 
-        <section id="stats" class="stats-grid" aria-label="Result summary"></section>
-
         <div class="quick-filter">
           <input id="localFilter" type="search" placeholder="Filter loaded results locally..." />
+          <input id="roomsFilter" type="number" min="0" step="1" placeholder="Rooms" />
+          <input id="minPricePerSqm" type="number" min="0" step="1" placeholder="Price/sq.m min" />
+          <input id="maxPricePerSqm" type="number" min="0" step="1" placeholder="Price/sq.m max" />
           <div class="tool-buttons">
             <button id="toggleView" type="button">Table view</button>
             <button id="loadAll" type="button">Load all pages</button>
             <button id="loadDetails" type="button">Load details</button>
             <button id="exportCsv" type="button">Export CSV</button>
-            <button id="exportJson" type="button">Export JSON</button>
-            <button id="copyLinks" type="button">Copy links</button>
           </div>
         </div>
 
@@ -233,6 +154,67 @@
             </div>
             <div class="building-mix" id="buildingMix"></div>
           </div>
+        </section>
+
+        <section class="flat-analysis-panel">
+          <div class="plan-browser-head">
+            <div>
+              <div class="section-label">Flat analyzer</div>
+              <h3>Sun, wind and location feedback</h3>
+            </div>
+            <form id="flatAnalyzerForm" class="flat-code-form">
+              <label>
+                <span>Building code</span>
+                <input id="flatCodeInput" type="text" value="46A/4/25" placeholder="46A/4/25" />
+              </label>
+              <button type="submit" class="primary">Analyze</button>
+            </form>
+          </div>
+          <div id="flatAnalysisResult" class="flat-analysis-result" aria-live="polite"></div>
+        </section>
+
+        <section class="flat-ranking-panel">
+          <div class="plan-browser-head">
+            <div>
+              <div class="section-label">Best apartments</div>
+              <h3>Rank current on-sale options</h3>
+            </div>
+            <div class="ranking-controls">
+              <label>
+                <span>Rooms</span>
+                <select id="rankingRooms">
+                  <option value="all">All rooms</option>
+                  <option value="2">2 rooms</option>
+                  <option value="3">3 rooms</option>
+                </select>
+              </label>
+              <label>
+                <span>Priority</span>
+                <select id="rankingPriority">
+                  <option value="balanced">Balanced</option>
+                  <option value="value">Lowest price/sq.m</option>
+                  <option value="view">View and sunlight</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div id="flatRankingSummary" class="ranking-summary"></div>
+          <div id="flatRankingResults" class="ranking-results" aria-live="polite"></div>
+        </section>
+
+        <section class="newtashkent-context-panel">
+          <div class="plan-browser-head">
+            <div>
+              <div class="section-label">New Tashkent map context</div>
+              <h3>Official planning signals</h3>
+            </div>
+            <div class="context-map-links">
+              <a href="https://www.newtashkent.uz/en/maps/lod-map-two" target="_blank" rel="noreferrer">2D map</a>
+              <a href="https://www.newtashkent.uz/en/maps/lod-map-three" target="_blank" rel="noreferrer">3D map</a>
+            </div>
+          </div>
+          <div id="newTashkentContext" class="newtashkent-context"></div>
+          <div id="officialLotContext" class="official-lot-context"></div>
         </section>
 
         <section class="plan-browser">

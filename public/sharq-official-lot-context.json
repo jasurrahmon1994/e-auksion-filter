@@ -1,0 +1,688 @@
+{
+  "source": "https://www.newtashkent.uz/maps/kmz-data",
+  "sourceLocal": "reports/newtashkent-kmz-data.json",
+  "mapCenter": [
+    69.485184,
+    41.295214
+  ],
+  "sharqBahoriYandexPoint": [
+    69.457473,
+    41.296161
+  ],
+  "sharqBahoriBounds": {
+    "west": 69.452393,
+    "south": 41.267822,
+    "east": 69.504693,
+    "north": 41.315248
+  },
+  "projectionConfidence": "low",
+  "projectionNote": "Lot coordinates are estimated by projecting the existing Sharq overview marker positions into the broad Yandex Sharq Bahori bounds. Use them for planning context only, not survey-grade location.",
+  "sharqPointNearest": [
+    {
+      "distanceMeters": 39,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Savdo-sotiq, oziq-ovqat",
+      "areaHa": 1.13,
+      "floors": 10
+    },
+    {
+      "distanceMeters": 128,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Savdo-sotiq, oziq-ovqat",
+      "areaHa": 0.75,
+      "floors": 10
+    },
+    {
+      "distanceMeters": 191,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Ofis",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 1.78,
+      "floors": 6
+    },
+    {
+      "distanceMeters": 203,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Savdo-sotiq, oziq-ovqat",
+      "areaHa": 1.05,
+      "floors": 10
+    },
+    {
+      "distanceMeters": 219,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 1.47,
+      "floors": 5
+    },
+    {
+      "distanceMeters": 251,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 3.47,
+      "floors": 10
+    },
+    {
+      "distanceMeters": 287,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Savdo-sotiq, oziq-ovqat",
+      "areaHa": 2.5,
+      "floors": 5
+    },
+    {
+      "distanceMeters": 289,
+      "transekt": "T2",
+      "block": "Mahalla parki",
+      "function1": "Yashil ochiq maydon",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 1.55,
+      "floors": 0
+    },
+    {
+      "distanceMeters": 333,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Boshqa foydalanish yo'q",
+      "areaHa": 1.93,
+      "floors": 5
+    },
+    {
+      "distanceMeters": 357,
+      "transekt": "T5",
+      "block": "Shahar hududi",
+      "function1": "Kop qavatli turar-joy",
+      "function2": "Savdo-sotiq, oziq-ovqat",
+      "areaHa": 1.43,
+      "floors": 8
+    }
+  ],
+  "lots": [
+    {
+      "id": "34A",
+      "layout": "full",
+      "estimatedCoordinate": [
+        69.473051,
+        41.30894
+      ],
+      "nearest": [
+        {
+          "distanceMeters": 27,
+          "transekt": "T3",
+          "block": "Mavjud hudud",
+          "function1": "Mavjud mahalla(Rekonstruksiya)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 2.74,
+          "floors": 2
+        },
+        {
+          "distanceMeters": 75,
+          "transekt": "T3",
+          "block": "Mavjud hudud",
+          "function1": "Mavjud mahalla(Rekonstruksiya)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 2.32,
+          "floors": 2
+        },
+        {
+          "distanceMeters": 178,
+          "transekt": "T3",
+          "block": "Mavjud hudud",
+          "function1": "Mavjud mahalla(Rekonstruksiya)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.38,
+          "floors": 2
+        },
+        {
+          "distanceMeters": 185,
+          "transekt": "T3",
+          "block": "Mavjud hudud",
+          "function1": "Mavjud mahalla(Rekonstruksiya)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.64,
+          "floors": 2
+        },
+        {
+          "distanceMeters": 196,
+          "transekt": "T3",
+          "block": "Mavjud hudud",
+          "function1": "Mavjud mahalla(Rekonstruksiya)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 2.61,
+          "floors": 2
+        },
+        {
+          "distanceMeters": 221,
+          "transekt": "T3",
+          "block": "Mavjud hudud",
+          "function1": "Mavjud mahalla(Rekonstruksiya)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.62,
+          "floors": 2
+        },
+        {
+          "distanceMeters": 268,
+          "transekt": "T3",
+          "block": "Mavjud hudud",
+          "function1": "Mavjud mahalla(Rekonstruksiya)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.7,
+          "floors": 2
+        },
+        {
+          "distanceMeters": 273,
+          "transekt": "T3",
+          "block": "Mavjud hudud",
+          "function1": "Mavjud mahalla(Rekonstruksiya)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.81,
+          "floors": 2
+        }
+      ]
+    },
+    {
+      "id": "43F",
+      "layout": "sideCenterRemoved",
+      "estimatedCoordinate": [
+        69.471326,
+        41.284326
+      ],
+      "nearest": [
+        {
+          "distanceMeters": 25,
+          "transekt": "T4",
+          "block": "Shahar hududi",
+          "function1": "Savdo-sotiq, oziq-ovqat",
+          "function2": "Madaniy obyekt",
+          "areaHa": 0.71,
+          "floors": 3
+        },
+        {
+          "distanceMeters": 39,
+          "transekt": null,
+          "block": "Kommunal zaxira",
+          "function1": "Utilitalar(Zahirasi)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.07,
+          "floors": null
+        },
+        {
+          "distanceMeters": 111,
+          "transekt": "T4",
+          "block": "Shahar hududi",
+          "function1": "Mehmonxona",
+          "function2": "Savdo-sotiq, oziq-ovqat",
+          "areaHa": 1.03,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 148,
+          "transekt": "TS",
+          "block": "Maxsus hudud",
+          "function1": "Mamuriy markaz",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 2,
+          "floors": 3
+        },
+        {
+          "distanceMeters": 162,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.17,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 197,
+          "transekt": "T4",
+          "block": "Jamoatchilik markazi",
+          "function1": "Ijtimoiy obyekt(Maktab)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 4.77,
+          "floors": 4
+        },
+        {
+          "distanceMeters": 200,
+          "transekt": null,
+          "block": "Kommunal zaxira",
+          "function1": "Utilitalar(Zahirasi)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.09,
+          "floors": null
+        },
+        {
+          "distanceMeters": 208,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 3.18,
+          "floors": 0
+        }
+      ]
+    },
+    {
+      "id": "43D",
+      "layout": "sideCenterRemoved",
+      "estimatedCoordinate": [
+        69.474725,
+        41.285417
+      ],
+      "nearest": [
+        {
+          "distanceMeters": 109,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.06,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 118,
+          "transekt": "TS",
+          "block": "Shahar hududi",
+          "function1": "Madaniy obyekt",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 3.04,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 119,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.15,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 149,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.17,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 154,
+          "transekt": "T4",
+          "block": "Shahar hududi",
+          "function1": "Mehmonxona",
+          "function2": "Savdo-sotiq, oziq-ovqat",
+          "areaHa": 1.88,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 169,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.83,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 177,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.85,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 220,
+          "transekt": "T4",
+          "block": "Shahar hududi",
+          "function1": "Mehmonxona",
+          "function2": "Savdo-sotiq, oziq-ovqat",
+          "areaHa": 1.03,
+          "floors": 6
+        }
+      ]
+    },
+    {
+      "id": "45D",
+      "layout": "full",
+      "estimatedCoordinate": [
+        69.479014,
+        41.287456
+      ],
+      "nearest": [
+        {
+          "distanceMeters": 144,
+          "transekt": "T5",
+          "block": "Maxsus hudud",
+          "function1": "Ofis",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 3.24,
+          "floors": 10
+        },
+        {
+          "distanceMeters": 148,
+          "transekt": "TS",
+          "block": "Maxsus hudud",
+          "function1": "Madaniy obyekt",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 3.27,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 198,
+          "transekt": "TS",
+          "block": "Maxsus hudud",
+          "function1": "Madaniy obyekt",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 3.67,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 210,
+          "transekt": "TS",
+          "block": "Maxsus hudud",
+          "function1": "Madaniy obyekt",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 3.99,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 240,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.2,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 297,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Kop qavatli turar-joy",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 4.48,
+          "floors": 10
+        },
+        {
+          "distanceMeters": 305,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.83,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 311,
+          "transekt": "T2",
+          "block": "Shahar parki",
+          "function1": "Shahar parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.2,
+          "floors": 0
+        }
+      ]
+    },
+    {
+      "id": "44B",
+      "layout": "sideCenterRemoved",
+      "estimatedCoordinate": [
+        69.478177,
+        41.282714
+      ],
+      "nearest": [
+        {
+          "distanceMeters": 91,
+          "transekt": "T4",
+          "block": "Jamoatchilik markazi",
+          "function1": "Ijtimoiy obyekt(Maktab)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 2.07,
+          "floors": 5
+        },
+        {
+          "distanceMeters": 116,
+          "transekt": "T1",
+          "block": "Arxeologik hudud",
+          "function1": "Arxeologik yodigorlik",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.4,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 141,
+          "transekt": "T4",
+          "block": "Shahar hududi",
+          "function1": "Avtoturargoh",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.47,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 154,
+          "transekt": "T4",
+          "block": "Jamoatchilik markazi",
+          "function1": "Ijtimoiy obyekt(Maktab)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 2.38,
+          "floors": 5
+        },
+        {
+          "distanceMeters": 203,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Savdo-sotiq, oziq-ovqat",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.92,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 223,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Mehmonxona",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.02,
+          "floors": 8
+        },
+        {
+          "distanceMeters": 257,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Ofis",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 1.02,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 273,
+          "transekt": "TS",
+          "block": "Maxsus hudud",
+          "function1": "Madaniy obyekt",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 5.13,
+          "floors": 6
+        }
+      ]
+    },
+    {
+      "id": "46A",
+      "layout": "full",
+      "estimatedCoordinate": [
+        69.482622,
+        41.284421
+      ],
+      "nearest": [
+        {
+          "distanceMeters": 251,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Kop qavatli turar-joy",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 4.48,
+          "floors": 10
+        },
+        {
+          "distanceMeters": 290,
+          "transekt": "TS",
+          "block": "Maxsus hudud",
+          "function1": "Madaniy obyekt",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 3.67,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 319,
+          "transekt": "T1",
+          "block": "Arxeologik hudud",
+          "function1": "Arxeologik yodigorlik",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.4,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 330,
+          "transekt": "TS",
+          "block": "Maxsus hudud",
+          "function1": "Oliy talim universitet",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 40,
+          "floors": 4
+        },
+        {
+          "distanceMeters": 333,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Kop qavatli turar-joy",
+          "function2": "Savdo-sotiq, oziq-ovqat",
+          "areaHa": 3,
+          "floors": 10
+        },
+        {
+          "distanceMeters": 334,
+          "transekt": "T3",
+          "block": "Jamoatchilik markazi",
+          "function1": "Ijtimoiy obyekt(Bogcha)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.72,
+          "floors": 2
+        },
+        {
+          "distanceMeters": 345,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Kop qavatli turar-joy",
+          "function2": "Savdo-sotiq, oziq-ovqat",
+          "areaHa": 1.55,
+          "floors": 16
+        },
+        {
+          "distanceMeters": 359,
+          "transekt": "T3",
+          "block": "Jamoatchilik markazi",
+          "function1": "Ijtimoiy obyekt(Bogcha)",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 0.72,
+          "floors": 2
+        }
+      ]
+    },
+    {
+      "id": "44A",
+      "layout": "sideCenterRemoved",
+      "estimatedCoordinate": [
+        69.480949,
+        41.278872
+      ],
+      "nearest": [
+        {
+          "distanceMeters": 121,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Kop qavatli turar-joy",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 5.25,
+          "floors": 4
+        },
+        {
+          "distanceMeters": 139,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Kop qavatli turar-joy",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 2.21,
+          "floors": 4
+        },
+        {
+          "distanceMeters": 145,
+          "transekt": "T2",
+          "block": "Tuman parki",
+          "function1": "Tuman parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 7.43,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 228,
+          "transekt": "T2",
+          "block": "Tuman parki",
+          "function1": "Tuman parki",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 6.97,
+          "floors": 0
+        },
+        {
+          "distanceMeters": 258,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Ofis",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 1.02,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 311,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Kop qavatli turar-joy",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 2.54,
+          "floors": 6
+        },
+        {
+          "distanceMeters": 326,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Mehmonxona",
+          "function2": "Boshqa foydalanish yo'q",
+          "areaHa": 1.02,
+          "floors": 8
+        },
+        {
+          "distanceMeters": 349,
+          "transekt": "T5",
+          "block": "Shahar hududi",
+          "function1": "Kop qavatli turar-joy",
+          "function2": "Mehmonxona + savdo-sotiq, oziq-ovqat",
+          "areaHa": 2.88,
+          "floors": 6
+        }
+      ]
+    }
+  ]
+}

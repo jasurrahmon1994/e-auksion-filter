@@ -3,3 +3,5 @@ node_modules/
 .venv/
 reports/
 *.log
+scripts/start-with-telegram.ps1
+scripts/__pycache__/

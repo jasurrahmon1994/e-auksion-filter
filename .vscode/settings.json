@@ -3,6 +3,10 @@
         "/^node \\.\\\\server\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^python -c \"import openpyxl; wb = openpyxl\\.load_workbook\\('reports/All\\.xlsx'\\); print\\(wb\\.sheetnames\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }

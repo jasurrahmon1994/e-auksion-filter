@@ -6,32 +6,21 @@ const summaryEl = document.querySelector("#summary");
 const pageInfoEl = document.querySelector("#pageInfo");
 const prevPageButton = document.querySelector("#prevPage");
 const nextPageButton = document.querySelector("#nextPage");
-const resetButton = document.querySelector("#resetButton");
-const searchButton = form.querySelector('button[type="submit"]');
 const localFilterInput = document.querySelector("#localFilter");
-const exportJsonButton = document.querySelector("#exportJson");
+const roomsFilterInput = document.querySelector("#roomsFilter");
+const minPricePerSqmInput = document.querySelector("#minPricePerSqm");
+const maxPricePerSqmInput = document.querySelector("#maxPricePerSqm");
 const exportCsvButton = document.querySelector("#exportCsv");
 const loadAllButton = document.querySelector("#loadAll");
 const loadDetailsButton = document.querySelector("#loadDetails");
-const copyLinksButton = document.querySelector("#copyLinks");
 const toggleViewButton = document.querySelector("#toggleView");
-const saveSearchButton = document.querySelector("#saveSearch");
-const savedSearchesEl = document.querySelector("#savedSearches");
-const statsEl = document.querySelector("#stats");
 const autoRefreshInput = document.querySelector("#autoRefresh");
 const refreshIntervalSelect = document.querySelector("#refreshInterval");
 const lastUpdatedEl = document.querySelector("#lastUpdated");
-const minPriceInput = document.querySelector("#minPrice");
-const maxPriceInput = document.querySelector("#maxPrice");
-const minApplicationsInput = document.querySelector("#minApplications");
-const maxApplicationsInput = document.querySelector("#maxApplications");
 const indexSelect = document.querySelector("#index");
-const dateFromInput = document.querySelector("#dateFrom");
-const dateToInput = document.querySelector("#dateTo");
 const finishedStatusSelect = document.querySelector("#finishedStatus");
 
 const LOCAL_FILTER_NAMES = new Set(["minPrice", "maxPrice", "minApplications", "maxApplications"]);
-const STORAGE_KEY = "e-auksion-filter-saved-searches";
 const LOT_URL = "https://e-auksion.uz/lot-view?lot_id=";
 
 let state = {
@@ -54,18 +43,6 @@ function money(value) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Number(value));
 }
 
-function parseFormattedNumber(value) {
-  const normalized = String(value || "").replace(/[^\d.-]/g, "");
-  if (!normalized) return null;
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function formatNumberInput(input) {
-  const value = parseFormattedNumber(input.value);
-  input.value = value === null ? "" : money(value);
-}
-
 function numberOrNull(value) {
   if (value === "") return null;
   const parsed = Number(value);
@@ -79,8 +56,6 @@ function setStatus(message, isError = false) {
 }
 
 function updateBusyControls() {
-  searchButton.disabled = state.isLoadingLots;
-  resetButton.disabled = state.isLoadingLots;
   loadAllButton.disabled = state.isLoadingLots;
   loadDetailsButton.disabled = state.isLoadingLots;
 }
@@ -120,23 +95,13 @@ function formatDate(date) {
   return `${pad2(date.getDate())}.${pad2(date.getMonth() + 1)}.${date.getFullYear()}`;
 }
 
-function setDateRange(from, to) {
-  dateFromInput.value = formatDate(from);
-  dateToInput.value = formatDate(to);
-}
-
-function setCompletedDefaultDates() {
-  if (indexSelect.value !== "2" || dateFromInput.value || dateToInput.value) return;
-  const now = new Date();
-  setDateRange(new Date(now.getFullYear(), now.getMonth(), 1), now);
-}
-
 function lotStatus(lot) {
   const statusId = Number(lot.lot_statuses_id);
-  const applications = Number(lot.user_order_cnt || lot.user_orders_apply_cnt || 0);
+  const applications = applicationsCount(lot);
 
   if (statusId === 32) return "Failed / not held";
   if ([19, 29, 34].includes(statusId)) return "Successful";
+  if (statusId === 30) return "Cancelled";
   if (statusId === 2) return "On sale";
   if (statusId === 11) return "Current bidding";
   if (applications > 0 && indexSelect.value === "2") return "Successful";
@@ -147,24 +112,48 @@ function lotStatus(lot) {
 function statusClass(label) {
   if (label === "Successful") return "success";
   if (label === "Failed / not held") return "failed";
+  if (label === "Cancelled") return "failed";
   if (label === "On sale") return "sale";
   if (label === "Current bidding") return "bidding";
   return "neutral";
 }
 
-function applications(lot) {
-  const raw = lot.user_order_cnt ?? lot.user_orders_apply_cnt ?? 0;
-  const n = Number(raw);
+// user_order_cnt can be "1+" (server caps/anonymizes the count), so parse the leading digits.
+function applicationsCount(lot) {
+  const raw = String(lot.user_order_cnt ?? lot.user_orders_apply_cnt ?? 0);
+  const n = parseInt(raw, 10);
   return Number.isFinite(n) ? n : 0;
+}
+
+function applications(lot) {
+  const raw = lot.user_order_cnt ?? lot.user_orders_apply_cnt;
+  if (raw === null || raw === undefined || raw === "") return 0;
+  return String(raw);
 }
 
 function lotUrl(lot) {
   return `${LOT_URL}${encodeURIComponent(lot.id)}`;
 }
 
+function extractLotNumber(name) {
+  if (!name) return "-";
+  return String(name).substring(0, 3);
+}
+
+function extractBuildingNumber(name) {
+  if (!name) return "-";
+  const nameStr = String(name);
+  return nameStr.length > 4 ? nameStr[4] : "-";
+}
+
 function detailValue(details, shortName) {
   const item = details.find((detail) => detail.short_name === shortName);
   return item?.detail_value_as_string || item?.detail_value_string || item?.detail_value || "";
+}
+
+function detailAreaValue(details, shortName) {
+  const value = detailValue(details, shortName);
+  return typeof value === "string" ? value.replaceAll(",", ".") : value;
 }
 
 function lotDetails(lot) {
@@ -183,10 +172,10 @@ function extractLotDetails(detailPayload) {
     handoverStatus: detailValue(details, "state_handover_to_investor"),
     completionTerm: detailValue(details, "term_handover_to_investor"),
     rooms: detailValue(details, "xona_umumiy_soni"),
-    totalArea: detailValue(details, "xonadon_umumiy_maydon"),
-    livingArea: detailValue(details, "xona_umumiy_maydoni"),
-    kitchenArea: detailValue(details, "oshxona_maydoni"),
-    auxiliaryArea: detailValue(details, "yordamchi_xonalar_maydoni"),
+    totalArea: detailAreaValue(details, "xonadon_umumiy_maydon"),
+    livingArea: detailAreaValue(details, "xona_umumiy_maydoni"),
+    kitchenArea: detailAreaValue(details, "oshxona_maydoni"),
+    auxiliaryArea: detailAreaValue(details, "yordamchi_xonalar_maydoni"),
   };
 }
 
@@ -211,16 +200,28 @@ function lotMatchesLocalFilter(lot, term) {
 
   if (term && !haystack.includes(term.toLowerCase())) return false;
 
-  const price = Number(lot.start_price || 0);
-  const minPrice = parseFormattedNumber(minPriceInput.value);
-  const maxPrice = parseFormattedNumber(maxPriceInput.value);
-  const minApplications = numberOrNull(minApplicationsInput.value);
-  const maxApplications = numberOrNull(maxApplicationsInput.value);
+  return true;
+}
 
-  if (minPrice !== null && price < minPrice) return false;
-  if (maxPrice !== null && price > maxPrice) return false;
-  if (minApplications !== null && applications(lot) < minApplications) return false;
-  if (maxApplications !== null && applications(lot) > maxApplications) return false;
+function pricePerSqmValue(lot) {
+  const price = Number(lot.start_price || 0);
+  const area = Number(lotDetails(lot).totalArea || 0);
+  return price && area ? price / area : null;
+}
+
+function lotMatchesNumericFilters(lot) {
+  const rooms = numberOrNull(roomsFilterInput.value);
+  const minPricePerSqm = numberOrNull(minPricePerSqmInput.value);
+  const maxPricePerSqm = numberOrNull(maxPricePerSqmInput.value);
+
+  if (rooms !== null && Number(lotDetails(lot).rooms || 0) !== rooms) return false;
+
+  if (minPricePerSqm !== null || maxPricePerSqm !== null) {
+    const value = pricePerSqmValue(lot);
+    if (value === null) return false;
+    if (minPricePerSqm !== null && value < minPricePerSqm) return false;
+    if (maxPricePerSqm !== null && value > maxPricePerSqm) return false;
+  }
 
   return true;
 }
@@ -242,8 +243,10 @@ function sortValue(lot, key) {
   const map = {
     lot: lot.lot_number || "",
     name: lot.name || "",
+    lotNumber: extractLotNumber(lot.name),
+    buildingNumber: extractBuildingNumber(lot.name),
     price: Number(lot.start_price || 0),
-    applications: applications(lot),
+    applications: applicationsCount(lot),
     status: lotStatus(lot),
     pricePerSqm: (() => { const p = Number(lot.start_price || 0); const a = Number(lotDetails(lot).totalArea || 0); return (p && a) ? p / a : 0; })(),
     auctionEnd: lot.order_end_time_str || "",
@@ -259,33 +262,11 @@ function sortValue(lot, key) {
 }
 
 function filteredRows() {
-  return sortedRows(state.rows.filter((lot) => lotMatchesLocalFilter(lot, localFilterInput.value.trim())));
-}
-
-function renderStats(rows) {
-  const prices = rows.map((lot) => Number(lot.start_price || 0)).filter((price) => price > 0);
-  const totalApplications = rows.reduce((sum, lot) => sum + applications(lot), 0);
-  const statusCounts = rows.reduce((acc, lot) => {
-    const status = lotStatus(lot);
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {});
-  const avgPrice = prices.length ? prices.reduce((sum, price) => sum + price, 0) / prices.length : 0;
-
-  const stats = [
-    ["Filtered lots", rows.length],
-    ["Total applications", totalApplications],
-    ["Average price", `${money(avgPrice)} UZS`],
-    ["Min price", `${money(prices.length ? Math.min(...prices) : 0)} UZS`],
-    ["Max price", `${money(prices.length ? Math.max(...prices) : 0)} UZS`],
-    ["Successful", statusCounts.Successful || 0],
-    ["Failed / not held", statusCounts["Failed / not held"] || 0],
-    ["On sale", statusCounts["On sale"] || 0],
-  ];
-
-  statsEl.innerHTML = stats
-    .map(([label, value]) => `<div class="stat"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`)
-    .join("");
+  return sortedRows(
+    state.rows
+      .filter((lot) => lotMatchesLocalFilter(lot, localFilterInput.value.trim()))
+      .filter(lotMatchesNumericFilters)
+  );
 }
 
 function renderResults() {
@@ -293,7 +274,6 @@ function renderResults() {
   resultsEl.innerHTML = "";
   resultsEl.className = `results ${state.isTableView ? "table-mode" : "card-mode"}`;
   toggleViewButton.textContent = state.isTableView ? "Card view" : "Table view";
-  renderStats(rows);
 
   if (!rows.length) {
     summaryEl.textContent = `${state.totalRows} lots found. Showing 0 of ${state.rows.length} loaded rows after local filters.`;
@@ -315,6 +295,8 @@ function renderTable(rows) {
   const columns = [
     ["lot", "Lot"],
     ["name", "Name"],
+    ["lotNumber", "Lot #"],
+    ["buildingNumber", "Building #"],
     ["price", "Price"],
     ["pricePerSqm", "Price/sq.m"],
     ["applications", "Apps"],
@@ -350,10 +332,8 @@ function renderTable(rows) {
 }
 
 function pricePerSqm(lot) {
-  const price = Number(lot.start_price || 0);
-  const area = Number(lotDetails(lot).totalArea || 0);
-  if (!price || !area) return "-";
-  return money(Math.round(price / area));
+  const value = pricePerSqmValue(lot);
+  return value === null ? "-" : money(Math.round(value));
 }
 
 function tableRow(lot) {
@@ -363,6 +343,8 @@ function tableRow(lot) {
     <tr>
       <td>${escapeHtml(lot.lot_number || lot.id)}</td>
       <td class="name-cell">${escapeHtml(lot.name || "-")}</td>
+      <td>${escapeHtml(extractLotNumber(lot.name))}</td>
+      <td>${escapeHtml(extractBuildingNumber(lot.name))}</td>
       <td>${money(lot.start_price)}</td>
       <td>${pricePerSqm(lot)}</td>
       <td>${applications(lot)}</td>
@@ -397,6 +379,8 @@ function cardMarkup(lot) {
           <span class="badge ${statusClass(status)}">${escapeHtml(status)}</span>
         </div>
         <div class="meta-list">
+          <div class="meta-row"><span>Lot #</span><strong>${escapeHtml(extractLotNumber(lot.name))}</strong></div>
+          <div class="meta-row"><span>Building #</span><strong>${escapeHtml(extractBuildingNumber(lot.name))}</strong></div>
           <div class="meta-row"><span>Price</span><strong>${money(lot.start_price)} UZS</strong></div>
           <div class="meta-row"><span>Price/sq.m</span><strong>${pricePerSqm(lot)} UZS</strong></div>
           <div class="meta-row"><span>Deposit</span><strong>${money(lot.zaklad_summa)} UZS</strong></div>
@@ -453,7 +437,6 @@ async function fetchLots(page = state.page, forcePerPage = null) {
 }
 
 async function loadLots({ silent = false } = {}) {
-  setCompletedDefaultDates();
   state.loadedAll = false;
   state.lastQuery = formParams().toString();
   state.isLoadingLots = true;
@@ -489,7 +472,6 @@ async function loadLots({ silent = false } = {}) {
 }
 
 async function loadAllPages() {
-  setCompletedDefaultDates();
   const previousText = loadAllButton.textContent;
   loadAllButton.disabled = true;
   loadAllButton.textContent = "Loading...";
@@ -547,7 +529,7 @@ async function loadDetailsForRows() {
     return;
   }
 
-  const rows = state.rows;
+  const rows = filteredRows();
   if (!rows.length) {
     setStatus("Load lots before loading details.");
     return;
@@ -609,13 +591,9 @@ function setLastUpdated() {
   lastUpdatedEl.textContent = `Last updated ${new Date().toLocaleTimeString()}`;
 }
 
-function exportJson() {
-  downloadFile("e-auksion-lots.json", JSON.stringify(filteredRows(), null, 2), "application/json");
-}
-
 function exportCsv() {
   const rows = filteredRows();
-  const headers = ["lot_number", "name", "price", "price_per_sqm", "deposit", "applications", "status", "auction_end", "unit_floor", "building_floors", "total_area", "rooms", "completion_term", "handover_status", "living_area", "kitchen_area", "auxiliary_area", "views", "url"];
+  const headers = ["lot_number", "name", "lot_number_extracted", "building_number", "price", "price_per_sqm", "deposit", "applications", "status", "auction_end", "unit_floor", "building_floors", "total_area", "rooms", "completion_term", "handover_status", "living_area", "kitchen_area", "auxiliary_area", "views", "url"];
   const csvRows = [headers.join(",")];
 
   for (const lot of rows) {
@@ -625,6 +603,8 @@ function exportCsv() {
       [
         lot.lot_number || lot.id,
         lot.name || "",
+        extractLotNumber(lot.name),
+        extractBuildingNumber(lot.name),
         lot.start_price || "",
         (() => { const p = Number(lot.start_price || 0); const a = Number(details.totalArea || 0); return (p && a) ? Math.round(p / a) : ""; })(),
         lot.zaklad_summa || "",
@@ -664,102 +644,6 @@ function downloadFile(filename, content, type) {
   URL.revokeObjectURL(url);
 }
 
-async function copyLinks() {
-  const links = filteredRows().map(lotUrl).join("\n");
-  if (!links) {
-    setStatus("There are no links to copy.");
-    return;
-  }
-
-  try {
-    await navigator.clipboard.writeText(links);
-    setStatus(`Copied ${filteredRows().length} links.`);
-  } catch (_) {
-    setStatus("Copy failed in this browser. Export CSV still includes links.", true);
-  }
-}
-
-function savedSearchValues() {
-  const data = new FormData(form);
-  const values = {};
-  for (const [key, value] of data.entries()) values[key] = value;
-  values.localFilter = localFilterInput.value;
-  return values;
-}
-
-function applySavedSearch(values) {
-  for (const [key, value] of Object.entries(values)) {
-    if (key === "localFilter") {
-      localFilterInput.value = value;
-      continue;
-    }
-    const field = form.elements.namedItem(key);
-    if (field) field.value = value;
-  }
-  state.page = 1;
-  loadLots();
-}
-
-function getSavedSearches() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  } catch (_) {
-    return [];
-  }
-}
-
-function setSavedSearches(searches) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(searches));
-}
-
-function renderSavedSearches() {
-  const searches = getSavedSearches();
-  if (!searches.length) {
-    savedSearchesEl.innerHTML = `<p class="empty-note">No saved searches yet.</p>`;
-    return;
-  }
-
-  savedSearchesEl.innerHTML = searches
-    .map((search, index) => `
-      <div class="saved-item">
-        <button type="button" data-load-search="${index}">${escapeHtml(search.name)}</button>
-        <button type="button" data-delete-search="${index}" aria-label="Delete saved search">Delete</button>
-      </div>
-    `)
-    .join("");
-
-  savedSearchesEl.querySelectorAll("[data-load-search]").forEach((button) => {
-    button.addEventListener("click", () => applySavedSearch(searches[Number(button.dataset.loadSearch)].values));
-  });
-  savedSearchesEl.querySelectorAll("[data-delete-search]").forEach((button) => {
-    button.addEventListener("click", () => {
-      searches.splice(Number(button.dataset.deleteSearch), 1);
-      setSavedSearches(searches);
-      renderSavedSearches();
-    });
-  });
-}
-
-function saveCurrentSearch() {
-  const searches = getSavedSearches();
-  const name = `Search ${new Date().toLocaleString()}`;
-  searches.unshift({ name, values: savedSearchValues() });
-  setSavedSearches(searches.slice(0, 12));
-  renderSavedSearches();
-}
-
-function setPreset(name) {
-  const now = new Date();
-  if (name === "today") setDateRange(now, now);
-  if (name === "this-month") setDateRange(new Date(now.getFullYear(), now.getMonth(), 1), now);
-  if (name === "last-month") setDateRange(new Date(now.getFullYear(), now.getMonth() - 1, 1), new Date(now.getFullYear(), now.getMonth(), 0));
-  if (name === "last-90") {
-    const from = new Date(now);
-    from.setDate(from.getDate() - 90);
-    setDateRange(from, now);
-  }
-}
-
 function updateAutoRefresh() {
   if (state.refreshTimer) clearInterval(state.refreshTimer);
   state.refreshTimer = null;
@@ -780,37 +664,16 @@ function escapeHtml(value) {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  state.page = 1;
-  loadLots();
 });
 
-resetButton.addEventListener("click", () => {
-  form.reset();
-  document.querySelector("#group").value = "41";
-  document.querySelector("#category").value = "169";
-  document.querySelector("#index").value = "1";
-  document.querySelector("#perPage").value = "12";
-  document.querySelector("#order").value = "0";
-  finishedStatusSelect.value = "0";
-  localFilterInput.value = "";
-  dateFromInput.value = "";
-  dateToInput.value = "";
-  minPriceInput.value = "";
-  maxPriceInput.value = "";
-  minApplicationsInput.value = "";
-  maxApplicationsInput.value = "";
-  state.page = 1;
-  state.sortKey = null;
-  state.sortDirection = "asc";
-  loadLots();
-});
-
-indexSelect.addEventListener("change", () => {
-  if (indexSelect.value === "2") {
-    setCompletedDefaultDates();
-  } else {
-    finishedStatusSelect.value = "0";
-  }
+[indexSelect, document.querySelector("#perPage"), finishedStatusSelect, document.querySelector("#order")].forEach((select) => {
+  select.addEventListener("change", () => {
+    if (select === indexSelect && indexSelect.value !== "2") {
+      finishedStatusSelect.value = "0";
+    }
+    state.page = 1;
+    loadLots();
+  });
 });
 
 prevPageButton.addEventListener("click", () => {
@@ -827,20 +690,8 @@ nextPageButton.addEventListener("click", () => {
   }
 });
 
-[localFilterInput, minApplicationsInput, maxApplicationsInput].forEach((input) => {
+[localFilterInput, roomsFilterInput, minPricePerSqmInput, maxPricePerSqmInput].forEach((input) => {
   input.addEventListener("input", renderResults);
-});
-
-[minPriceInput, maxPriceInput].forEach((input) => {
-  input.addEventListener("input", renderResults);
-  input.addEventListener("blur", () => {
-    formatNumberInput(input);
-    renderResults();
-  });
-});
-
-document.querySelectorAll("[data-preset]").forEach((button) => {
-  button.addEventListener("click", () => setPreset(button.dataset.preset));
 });
 
 toggleViewButton.addEventListener("click", () => {
@@ -849,14 +700,10 @@ toggleViewButton.addEventListener("click", () => {
 });
 loadAllButton.addEventListener("click", loadAllPages);
 loadDetailsButton.addEventListener("click", loadDetailsForRows);
-exportJsonButton.addEventListener("click", exportJson);
 exportCsvButton.addEventListener("click", exportCsv);
-copyLinksButton.addEventListener("click", copyLinks);
-saveSearchButton.addEventListener("click", saveCurrentSearch);
 autoRefreshInput.addEventListener("change", updateAutoRefresh);
 refreshIntervalSelect.addEventListener("change", updateAutoRefresh);
 
-renderSavedSearches();
 loadLots();
 
 const workspaceButtons = document.querySelectorAll("[data-workspace]");
@@ -889,6 +736,15 @@ const flatPlanDialog = document.querySelector("#flatPlanDialog");
 const dialogTitleEl = document.querySelector("#dialogTitle");
 const dialogImageEl = document.querySelector("#dialogImage");
 const closeFlatPlanButton = document.querySelector("#closeFlatPlan");
+const flatAnalyzerForm = document.querySelector("#flatAnalyzerForm");
+const flatCodeInput = document.querySelector("#flatCodeInput");
+const flatAnalysisResultEl = document.querySelector("#flatAnalysisResult");
+const rankingRoomsSelect = document.querySelector("#rankingRooms");
+const rankingPrioritySelect = document.querySelector("#rankingPriority");
+const flatRankingSummaryEl = document.querySelector("#flatRankingSummary");
+const flatRankingResultsEl = document.querySelector("#flatRankingResults");
+const newTashkentContextEl = document.querySelector("#newTashkentContext");
+const officialLotContextEl = document.querySelector("#officialLotContext");
 
 const SHARQ_ASSETS = "/sharq-assets/";
 
@@ -991,6 +847,63 @@ const lotMarkers = [
   { id: "44A", x: 54.6, y: 76.7, layout: "sideCenterRemoved", note: "Small 8-building complex." },
 ];
 
+const blockLocationProfiles = {
+  full: {
+    "1": { place: "lower-right corner", exposure: "outer south/east edge with one courtyard-facing side", sun: "Strongest winter benefit is likely on south-facing rooms; east-facing rooms stay cooler than west rooms in summer.", wind: "Moderate. Outer east faces can feel the north-east wind more than courtyard-facing rooms.", typeId: "tip1" },
+    "2": { place: "right lower side", exposure: "long outer/east side plus inner courtyard side", sun: "Good morning light is likely on east-facing rooms; west/courtyard rooms may get warmer late in the day.", wind: "Moderate to exposed on the outer side, calmer toward the courtyard.", typeId: "tip2" },
+    "3": { place: "right upper side", exposure: "long outer/east side plus inner courtyard side", sun: "Morning light is the likely strength; winter sun is best if main rooms also open southward.", wind: "More exposed than central blocks because it sits on the project edge.", typeId: "tip2" },
+    "4": { place: "upper-right corner", exposure: "outer north/east corner with a courtyard side", sun: "Cooler in summer, but north-facing rooms can be weak for winter sun. East-facing rooms get useful morning light without harsh afternoon heat.", wind: "Highest wind exposure in this complex because it sits near the north-east corner.", typeId: "tip1" },
+    "5": { place: "upper center", exposure: "top outer edge plus inner courtyard side", sun: "Balanced if the flat has a south/courtyard side; north-facing rooms are cooler and darker in winter.", wind: "Outer side can be breezy, courtyard side is calmer.", typeId: "tip34" },
+    "6": { place: "upper-left corner", exposure: "outer north/west corner", sun: "West-facing rooms can overheat on summer afternoons; north-facing rooms are weaker in winter.", wind: "Exposed on the top edge, with more dust and chill risk than inner buildings.", typeId: "tip1" },
+    "7": { place: "left upper side", exposure: "long outer/west side plus inner courtyard side", sun: "Watch west-facing rooms for summer afternoon heat; courtyard/east rooms are usually easier to cool.", wind: "Generally more sheltered from north-east wind than building 4, but outer west can be dusty.", typeId: "tip2" },
+    "8": { place: "left lower side", exposure: "long outer/west side plus inner courtyard side", sun: "Good winter value if rooms face south; west-facing rooms need shading in summer.", wind: "More sheltered from the north-east than the right/top edge.", typeId: "tip2" },
+    "9": { place: "lower-left corner", exposure: "outer south/west corner", sun: "Strong winter sun potential, but summer afternoon heat can be high on west/south-west rooms.", wind: "Mostly sheltered from north-east wind, with more heat exposure than building 4.", typeId: "tip1" },
+    "10": { place: "lower center", exposure: "bottom outer edge plus inner courtyard side", sun: "Usually one of the better winter-sun positions if main rooms face south.", wind: "Relatively sheltered from north-east wind by the block layout.", typeId: "tip34" },
+  },
+  sideCenterRemoved: {
+    "1": { place: "lower-right corner", exposure: "outer south/east edge", sun: "Good winter sun potential if rooms face south; east rooms are gentler in summer.", wind: "Moderate exposure on the outer edge.", typeId: "tip1" },
+    "2": { place: "right lower side", exposure: "outer/east side plus courtyard side", sun: "Likely morning light, with lower summer overheating than west-facing flats.", wind: "Moderate to exposed on the outer side.", typeId: "tip2" },
+    "3": { place: "right upper side", exposure: "outer/east side plus courtyard side", sun: "Morning light is likely; confirm the exact window side on the flat plan.", wind: "More exposed to north-east wind than the lower-left buildings.", typeId: "tip1" },
+    "4": { place: "upper-right corner", exposure: "outer north/east corner", sun: "Cooler in summer, weaker in winter if the main rooms face north.", wind: "One of the breezier positions in the small layout.", typeId: "tip34" },
+    "5": { place: "upper-left corner", exposure: "outer north/west corner", sun: "West-facing rooms may be hot in summer; north-facing rooms get limited winter sun.", wind: "Exposed on the top edge.", typeId: "tip1" },
+    "6": { place: "left lower side", exposure: "outer/west side plus courtyard side", sun: "West side can overheat in summer; courtyard/east side is milder.", wind: "More sheltered from north-east wind than the right/top edge.", typeId: "tip2" },
+    "7": { place: "lower-left corner", exposure: "outer south/west corner", sun: "Strong winter sun potential, with summer heat risk on the west side.", wind: "Mostly sheltered from north-east wind.", typeId: "tip1" },
+    "8": { place: "upper/lower inner edge", exposure: "edge block with mixed courtyard and outer exposure", sun: "Check whether main rooms face south/east for the best year-round balance.", wind: "Mixed. More comfortable on courtyard-facing rooms.", typeId: "tip34" },
+  },
+};
+
+const typeDefaults = {
+  tip1: { firstFlat: 11, perFloor: 5, firstResidentialFloor: 2, floors: 12, label: "TIP I" },
+  tip2: { firstFlat: 13, perFloor: 6, firstResidentialFloor: 3, floors: 9, label: "TIP II" },
+  tip34: { firstFlat: 13, perFloor: 6, firstResidentialFloor: 3, floors: 9, label: "TIP III/IV" },
+  fourPerFloor: { firstFlat: 5, perFloor: 4, firstResidentialFloor: 2, floors: 12, label: "4 flats/storey" },
+};
+
+const cardinalProfiles = {
+  full: {
+    "1": { side: "South-east perimeter", mountain: "Partial/possible on east-facing rooms; stronger from higher floors.", note: "Good winter sun if rooms face south, with some east-facing view potential." },
+    "2": { side: "East perimeter", mountain: "Good potential from east-facing rooms, especially on middle/high floors.", note: "Likely morning sun and a clearer outer-side view than courtyard rooms." },
+    "3": { side: "East / north-east perimeter", mountain: "Very good potential from east/north-east-facing rooms.", note: "One of the better rows for mountain-facing outlook if windows face outwards." },
+    "4": { side: "North-east corner", mountain: "Best potential in this lot from east/north-east-facing rooms.", note: "Strong view potential, but also the breeziest/coolest corner." },
+    "5": { side: "North perimeter", mountain: "Possible from north-east-leaning rooms; less certain than buildings 3-4.", note: "Cooler side with weaker winter sun if rooms face north." },
+    "6": { side: "North-west corner", mountain: "Low to medium; mountains are usually not the main outlook from west-facing rooms.", note: "Watch summer west heat and winter north shade." },
+    "7": { side: "West perimeter", mountain: "Low; mountain view is unlikely unless the flat has a long diagonal view.", note: "Better for afternoon light than mountain view." },
+    "8": { side: "West / south-west perimeter", mountain: "Low; outer rooms likely look away from the mountains.", note: "More sheltered from north-east wind." },
+    "9": { side: "South-west corner", mountain: "Low; better for sun than mountain view.", note: "Strong summer heat risk on south/west rooms." },
+    "10": { side: "South perimeter", mountain: "Low to medium only from high floors with an open diagonal view.", note: "Usually better winter sun than mountain view." },
+  },
+  sideCenterRemoved: {
+    "1": { side: "South-east perimeter", mountain: "Partial/possible on east-facing rooms.", note: "Good balance if main rooms face south/east." },
+    "2": { side: "East perimeter", mountain: "Good potential from east-facing rooms.", note: "Morning sun and likely outer-side view." },
+    "3": { side: "East / north-east perimeter", mountain: "Very good potential from east/north-east-facing rooms.", note: "Good mountain-view candidate if windows face outwards." },
+    "4": { side: "North-east corner", mountain: "Best potential in the small layout.", note: "Good view side, but cooler and windier." },
+    "5": { side: "North-west corner", mountain: "Low to medium; depends on diagonal openness.", note: "Less winter sun on north-facing rooms." },
+    "6": { side: "West perimeter", mountain: "Low; likely faces away from the mountains.", note: "Watch west-side summer heat." },
+    "7": { side: "South-west corner", mountain: "Low; better for winter sun than mountain view.", note: "Summer afternoon heat is the main watch-out." },
+    "8": { side: "North / mixed edge", mountain: "Medium if rooms face north-east; otherwise uncertain.", note: "Check the detailed flat plan before relying on view." },
+  },
+};
+
 let futureAuctionCandidates = {
   "34A": {
     complex: "Large complex - 10 buildings",
@@ -1069,6 +982,10 @@ let futureAuctionCandidates = {
   },
 };
 
+let onSaleFlatDetails = {};
+let newTashkentContext = null;
+let officialLotContext = null;
+
 let sharqState = {
   lotId: "46A",
   typeId: "tip1",
@@ -1086,8 +1003,46 @@ async function loadSharqCandidates() {
     if (!response.ok) throw new Error(`Candidates request failed with ${response.status}`);
     futureAuctionCandidates = await response.json();
     renderAuctionCandidates();
+    renderFlatAnalysis();
   } catch (error) {
     console.warn("Using embedded Sharq candidate fallback.", error);
+  }
+}
+
+async function loadOnSaleFlatDetails() {
+  try {
+    const response = await fetch("/sharq-onsale-flats.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`On-sale flat request failed with ${response.status}`);
+    const payload = await response.json();
+    onSaleFlatDetails = payload.flats || {};
+    renderFlatAnalysis();
+    renderFlatRanking();
+  } catch (error) {
+    console.warn("On-sale flat details are unavailable.", error);
+  }
+}
+
+async function loadNewTashkentContext() {
+  try {
+    const response = await fetch("/newtashkent-context.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`New Tashkent context request failed with ${response.status}`);
+    newTashkentContext = await response.json();
+    renderNewTashkentContext();
+  } catch (error) {
+    console.warn("New Tashkent context is unavailable.", error);
+    renderNewTashkentContext();
+  }
+}
+
+async function loadOfficialLotContext() {
+  try {
+    const response = await fetch("/sharq-official-lot-context.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Sharq official lot context request failed with ${response.status}`);
+    officialLotContext = await response.json();
+    renderOfficialLotContext();
+  } catch (error) {
+    console.warn("Sharq official lot context is unavailable.", error);
+    renderOfficialLotContext();
   }
 }
 
@@ -1222,6 +1177,7 @@ function selectLot(lotId) {
   renderProjectMarkers();
   renderAuctionCandidates();
   renderBlockLayout();
+  renderOfficialLotContext();
 }
 
 function renderAuctionCandidates() {
@@ -1278,6 +1234,398 @@ function renderBlockLayout() {
     .join("");
 }
 
+function parseFlatCode(value) {
+  const match = String(value || "").trim().toUpperCase().match(/^([0-9]{2}[A-Z])\s*[/-]\s*(\d{1,2})\s*[/-]\s*(\d{1,3})$/);
+  if (!match) return null;
+  return {
+    lotId: match[1],
+    building: match[2],
+    flat: Number(match[3]),
+  };
+}
+
+function typeIdFromSection(section, profile) {
+  const type = String(section?.type || "").toLowerCase();
+  if (type.includes("4 flats/storey")) return "fourPerFloor";
+  if (type.includes("tip ii")) return "tip2";
+  if (type.includes("tip iii") || type.includes("tip iv")) return "tip34";
+  if (type.includes("tip i")) return "tip1";
+  return profile?.typeId || "tip1";
+}
+
+function estimateFlatPosition(section, profile, flatNumber) {
+  const typeId = typeIdFromSection(section, profile);
+  const defaults = typeDefaults[typeId] || typeDefaults.tip1;
+  const firstFlat = typeId === "fourPerFloor" ? 5 : defaults.firstFlat;
+  const offset = flatNumber - firstFlat;
+
+  if (offset < 0) {
+    return {
+      typeId,
+      label: defaults.label,
+      floor: "Below expected residential range",
+      stack: "-",
+      confidence: "low",
+      note: `This flat number is lower than the usual first residential flat (${firstFlat}) for ${defaults.label}.`,
+    };
+  }
+
+  const floor = defaults.firstResidentialFloor + Math.floor(offset / defaults.perFloor);
+  const stack = (offset % defaults.perFloor) + 1;
+
+  return {
+    typeId,
+    label: defaults.label,
+    floor,
+    stack,
+    confidence: section ? "medium" : "low",
+    note: `Estimated from ${defaults.perFloor} flats per residential floor, starting at flat ${firstFlat}.`,
+  };
+}
+
+function flatNumberIsInList(flatNumber, listText) {
+  return String(listText || "")
+    .split(",")
+    .some((part) => {
+      const token = part.trim();
+      if (!token) return false;
+      const range = token.match(/^(\d+)\s*-\s*(\d+)$/);
+      if (range) return flatNumber >= Number(range[1]) && flatNumber <= Number(range[2]);
+      return Number(token) === flatNumber;
+    });
+}
+
+function buildFlatAnalysis(parsed) {
+  const code = `${parsed.lotId}/${parsed.building}/${parsed.flat}`;
+  const flatRecord = onSaleFlatDetails[code] || null;
+  const marker = lotMarkers.find((item) => item.id === parsed.lotId);
+  const candidates = futureAuctionCandidates[parsed.lotId];
+  const section = candidates?.sections?.find((item) => String(item.building) === String(parsed.building));
+  const layoutKey = marker?.layout || "full";
+  const profile = blockLocationProfiles[layoutKey]?.[parsed.building];
+  const cardinal = cardinalProfiles[layoutKey]?.[parsed.building];
+  const position = estimateFlatPosition(section, profile, parsed.flat);
+  if (flatRecord?.unitFloor) {
+    position.floor = flatRecord.unitFloor;
+    position.confidence = "high";
+    position.note = `Exact floor and flat details were loaded from the OnSale sheet for lot ${flatRecord.lotNumber || code}.`;
+  }
+  const topFloor = typeof position.floor === "number" && position.floor >= (typeDefaults[position.typeId]?.floors || 12) - 1;
+  const lowFloor = typeof position.floor === "number" && position.floor <= (typeDefaults[position.typeId]?.firstResidentialFloor || 2) + 1;
+  const isListedForLater = section ? flatNumberIsInList(parsed.flat, section.flats) : false;
+  const availability = flatRecord
+    ? `Currently on sale${flatRecord.lotNumber ? ` - lot ${flatRecord.lotNumber}` : ""}`
+    : section
+    ? (isListedForLater ? "Listed among later auction flats" : "Not listed in the current later-auction list")
+    : "No building inventory found";
+  const pros = [
+    profile?.sun || "Use the exact flat plan to confirm the main room orientation.",
+    cardinal ? `Mountain view: ${cardinal.mountain}` : "Mountain view is uncertain without a mapped building position.",
+    flatRecord ? `${flatRecord.rooms || "-"} room, ${flatRecord.totalArea || "-"} m2 flat; price/sq.m data is available from the workbook.` : typeof position.floor === "number" && position.floor >= 5 ? "Middle/high floor should receive better daylight and less direct street noise." : "Lower floor can be easier for access and may stay cooler in summer.",
+    profile?.wind?.includes("sheltered") ? "More sheltered from the historical north-east wind pattern." : "Corner/edge exposure can improve ventilation when windows are placed on different sides.",
+  ];
+  const cons = [
+    profile?.wind || "Wind exposure depends on the exact side of the flat.",
+    topFloor ? "Near-top floors can be hotter in summer and more dependent on roof insulation quality." : "Check neighboring-building shade on winter mornings and afternoons.",
+    lowFloor ? "Lower floors can lose winter sun faster because of courtyard shade and nearby buildings." : "Higher floors may feel wind more strongly during cold months.",
+  ];
+  const watch = [
+    cardinal ? `${cardinal.note} Confirm the actual room/window side on the flat plan.` : "Confirm the actual window direction from the detailed flat plan before bidding.",
+    "Check whether bedroom windows face the courtyard, road, or outer perimeter.",
+    "Ask for wall/roof insulation and ventilation details; they matter a lot in Tashkent's hot summer and cold winter.",
+  ];
+
+  return { marker, candidates, section, profile, cardinal, position, availability, pros, cons, watch, flatRecord };
+}
+
+function analysisList(title, items, tone) {
+  return `
+    <section class="analysis-list ${tone}">
+      <h4>${escapeHtml(title)}</h4>
+      <ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    </section>
+  `;
+}
+
+function renderFlatAnalysis() {
+  const parsed = parseFlatCode(flatCodeInput.value);
+  if (!parsed) {
+    flatAnalysisResultEl.innerHTML = `<div class="analysis-empty">Enter a code like 46A/4/25.</div>`;
+    return;
+  }
+
+  const analysis = buildFlatAnalysis(parsed);
+  if (analysis.marker && sharqState.lotId !== parsed.lotId) selectLot(parsed.lotId);
+  const confidence = analysis.flatRecord ? "high" : analysis.position.confidence === "medium" && analysis.profile ? "medium" : "low";
+  const confidenceClass = confidence === "high" ? "confidence-high" : confidence === "medium" ? "confidence-medium" : "confidence-low";
+  const exactMetrics = analysis.flatRecord
+    ? `
+      <div><span>Price</span><strong>${money(analysis.flatRecord.price)} UZS</strong></div>
+      <div><span>Area / rooms</span><strong>${escapeHtml(analysis.flatRecord.totalArea || "-")} m2 / ${escapeHtml(analysis.flatRecord.rooms || "-")}</strong></div>
+      <div><span>Auction end</span><strong>${escapeHtml(analysis.flatRecord.auctionEnd || "-")}</strong></div>
+      <div><span>Applications</span><strong>${escapeHtml(analysis.flatRecord.applications ?? "-")}</strong></div>
+    `
+    : "";
+
+  flatAnalysisResultEl.innerHTML = `
+    <div class="analysis-summary">
+      <div>
+        <span class="section-label">Selected flat</span>
+        <strong>${escapeHtml(parsed.lotId)}/${escapeHtml(parsed.building)}/${escapeHtml(parsed.flat)}</strong>
+        <p>${escapeHtml(analysis.profile?.place || "Location unknown")} - ${escapeHtml(analysis.profile?.exposure || "exact exposure needs plan confirmation")}.</p>
+      </div>
+      <span class="badge ${confidenceClass}">${escapeHtml(confidence)} confidence</span>
+    </div>
+    <div class="analysis-metrics">
+      <div><span>Building type</span><strong>${escapeHtml(analysis.section?.type || analysis.position.label)}</strong></div>
+      <div><span>Estimated floor</span><strong>${escapeHtml(analysis.position.floor)}</strong></div>
+      <div><span>Cardinal side</span><strong>${escapeHtml(analysis.cardinal?.side || "Unknown")}</strong></div>
+      <div><span>Mountain view</span><strong>${escapeHtml(analysis.cardinal?.mountain || "Needs exact window direction")}</strong></div>
+      <div><span>Flat stack</span><strong>${escapeHtml(analysis.position.stack)}</strong></div>
+      <div><span>Status</span><strong>${escapeHtml(analysis.availability)}</strong></div>
+      ${exactMetrics}
+    </div>
+    <div class="analysis-columns">
+      ${analysisList("Pros", analysis.pros, "pros")}
+      ${analysisList("Cons", analysis.cons, "cons")}
+      ${analysisList("Check", analysis.watch, "watch")}
+    </div>
+    <p class="analysis-note">${escapeHtml(analysis.position.note)} Layout direction assumes the architectural north arrow: top is north, right is east, bottom is south, left is west. Mountain-view notes assume the Tashkent/Chimgan mountain horizon is generally east to north-east.</p>
+  `;
+}
+
+function flatRecords() {
+  return Object.values(onSaleFlatDetails || {}).filter((record) => record?.code);
+}
+
+function normalizedScore(value, min, max, higherIsBetter = true) {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max) || min === max) return 50;
+  const ratio = (value - min) / (max - min);
+  return (higherIsBetter ? ratio : 1 - ratio) * 100;
+}
+
+function viewScore(cardinal) {
+  const text = `${cardinal?.side || ""} ${cardinal?.mountain || ""}`.toLowerCase();
+  if (text.includes("best")) return 100;
+  if (text.includes("very good")) return 92;
+  if (text.includes("good potential")) return 82;
+  if (text.includes("partial") || text.includes("medium")) return 62;
+  if (text.includes("low to medium")) return 45;
+  if (text.includes("low")) return 25;
+  return 50;
+}
+
+function sunScore(cardinal, profile) {
+  const text = `${cardinal?.side || ""} ${profile?.sun || ""}`.toLowerCase();
+  let score = 50;
+  if (text.includes("south-east")) score += 28;
+  else if (text.includes("south")) score += 24;
+  if (text.includes("east")) score += 15;
+  if (text.includes("west")) score -= 12;
+  if (text.includes("north")) score -= 14;
+  if (text.includes("cooler in summer")) score += 8;
+  if (text.includes("overheat") || text.includes("heat")) score -= 12;
+  return Math.max(0, Math.min(100, score));
+}
+
+function windScore(profile) {
+  const text = String(profile?.wind || "").toLowerCase();
+  if (text.includes("highest") || text.includes("breezier")) return 35;
+  if (text.includes("exposed")) return 45;
+  if (text.includes("moderate")) return 62;
+  if (text.includes("sheltered")) return 82;
+  return 60;
+}
+
+function floorScore(record) {
+  const floor = Number(record.unitFloor);
+  const floors = Number(record.buildingFloors || 12);
+  if (!floor || !floors) return 55;
+  if (floor <= 3) return 48;
+  if (floor >= floors) return 50;
+  if (floor >= floors - 1) return 60;
+  if (floor >= 5 && floor <= Math.max(7, floors - 3)) return 88;
+  return 72;
+}
+
+function scoreFlat(record, priceStats, priority) {
+  const marker = lotMarkers.find((item) => item.id === record.lotId);
+  const layoutKey = marker?.layout || "full";
+  const profile = blockLocationProfiles[layoutKey]?.[record.building];
+  const cardinal = cardinalProfiles[layoutKey]?.[record.building];
+  const pricePerSqm = Number(record.pricePerSqm || (Number(record.price) && Number(record.totalArea) ? Number(record.price) / Number(record.totalArea) : 0));
+  const value = normalizedScore(pricePerSqm, priceStats.min, priceStats.max, false);
+  const view = viewScore(cardinal);
+  const sun = sunScore(cardinal, profile);
+  const wind = windScore(profile);
+  const floor = floorScore(record);
+  const weights = {
+    balanced: { value: 0.38, view: 0.2, sun: 0.18, wind: 0.1, floor: 0.14 },
+    value: { value: 0.62, view: 0.12, sun: 0.1, wind: 0.06, floor: 0.1 },
+    view: { value: 0.22, view: 0.34, sun: 0.22, wind: 0.08, floor: 0.14 },
+  }[priority] || { value: 0.38, view: 0.2, sun: 0.18, wind: 0.1, floor: 0.14 };
+  const score = Math.round(value * weights.value + view * weights.view + sun * weights.sun + wind * weights.wind + floor * weights.floor);
+
+  return {
+    record,
+    score,
+    pricePerSqm,
+    profile,
+    cardinal,
+    reasons: [
+      `${money(Math.round(pricePerSqm))} UZS/sq.m`,
+      cardinal?.side || "Unknown side",
+      cardinal?.mountain || "View needs window check",
+      `${record.unitFloor || "-"} / ${record.buildingFloors || "-"} floor`,
+    ],
+  };
+}
+
+function renderFlatRanking() {
+  const roomFilter = rankingRoomsSelect.value;
+  const priority = rankingPrioritySelect.value;
+  const records = flatRecords().filter((record) => roomFilter === "all" || String(record.rooms) === roomFilter);
+
+  if (!records.length) {
+    flatRankingSummaryEl.textContent = "No on-sale flat data loaded for this room filter.";
+    flatRankingResultsEl.innerHTML = "";
+    return;
+  }
+
+  const priceValues = records
+    .map((record) => Number(record.pricePerSqm || (Number(record.price) && Number(record.totalArea) ? Number(record.price) / Number(record.totalArea) : 0)))
+    .filter((value) => value > 0);
+  const priceStats = { min: Math.min(...priceValues), max: Math.max(...priceValues) };
+  const ranked = records
+    .map((record) => scoreFlat(record, priceStats, priority))
+    .sort((a, b) => b.score - a.score || a.pricePerSqm - b.pricePerSqm)
+    .slice(0, 12);
+  const avgPrice = priceValues.reduce((sum, value) => sum + value, 0) / priceValues.length;
+
+  flatRankingSummaryEl.textContent = `${records.length} current on-sale flat${records.length === 1 ? "" : "s"} ranked. Price/sq.m range: ${money(Math.round(priceStats.min))} - ${money(Math.round(priceStats.max))} UZS. Average: ${money(Math.round(avgPrice))} UZS.`;
+  flatRankingResultsEl.innerHTML = ranked.map(rankingCardMarkup).join("");
+
+  flatRankingResultsEl.querySelectorAll("[data-rank-code]").forEach((button) => {
+    button.addEventListener("click", () => {
+      flatCodeInput.value = button.dataset.rankCode;
+      renderFlatAnalysis();
+      document.querySelector(".flat-analysis-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
+function rankingCardMarkup(item) {
+  const record = item.record;
+  return `
+    <article class="ranking-card">
+      <div class="ranking-rank">
+        <strong>${escapeHtml(item.score)}</strong>
+        <span>score</span>
+      </div>
+      <div class="ranking-body">
+        <div class="ranking-title">
+          <button type="button" data-rank-code="${escapeHtml(record.code)}">${escapeHtml(record.code)}</button>
+          <span>${escapeHtml(record.rooms || "-")} rooms | ${escapeHtml(record.totalArea || "-")} m2</span>
+        </div>
+        <div class="ranking-facts">
+          <span>${money(record.price)} UZS</span>
+          <span>${money(Math.round(item.pricePerSqm))} UZS/sq.m</span>
+          <span>Floor ${escapeHtml(record.unitFloor || "-")}/${escapeHtml(record.buildingFloors || "-")}</span>
+          <span>${escapeHtml(record.applications ?? "-")} apps</span>
+        </div>
+        <p>${item.reasons.map(escapeHtml).join(" | ")}</p>
+      </div>
+    </article>
+  `;
+}
+
+function renderNewTashkentContext() {
+  if (!newTashkentContext) {
+    newTashkentContextEl.innerHTML = `<div class="analysis-empty">Official planning context has not been generated yet.</div>`;
+    return;
+  }
+
+  const nearest = (newTashkentContext.nearMapCenter || []).slice(0, 8);
+  const topFunctions = (newTashkentContext.topFunctions || []).slice(0, 8);
+
+  newTashkentContextEl.innerHTML = `
+    <div class="context-metrics">
+      <div><span>Planning polygons</span><strong>${escapeHtml(newTashkentContext.featureCount || "-")}</strong></div>
+      <div><span>2D map center</span><strong>${escapeHtml((newTashkentContext.mapCenter || []).join(", "))}</strong></div>
+      <div><span>Map zoom</span><strong>${escapeHtml(newTashkentContext.mapZoom || "-")}</strong></div>
+    </div>
+    <div class="context-grid">
+      <section>
+        <h4>Nearest official functions</h4>
+        <div class="context-list">
+          ${nearest
+            .map((item) => `
+              <div class="context-row">
+                <strong>${escapeHtml(item.function1 || "-")}</strong>
+                <span>${escapeHtml(item.block || "-")} | ${escapeHtml(item.transekt || "-")} | ${escapeHtml(item.distanceMeters)} m</span>
+              </div>
+            `)
+            .join("")}
+        </div>
+      </section>
+      <section>
+        <h4>Most common functions</h4>
+        <div class="context-list">
+          ${topFunctions
+            .map((item) => `
+              <div class="context-row">
+                <strong>${escapeHtml(item.name)}</strong>
+                <span>${escapeHtml(item.count)} polygons</span>
+              </div>
+            `)
+            .join("")}
+        </div>
+      </section>
+    </div>
+    <p class="analysis-note">${escapeHtml((newTashkentContext.insights || []).join(" "))}</p>
+  `;
+}
+
+function renderOfficialLotContext() {
+  if (!officialLotContext) {
+    officialLotContextEl.innerHTML = "";
+    return;
+  }
+
+  const lot = (officialLotContext.lots || []).find((item) => item.id === sharqState.lotId);
+  if (!lot) {
+    officialLotContextEl.innerHTML = "";
+    return;
+  }
+
+  const nearest = (lot.nearest || []).slice(0, 5);
+  officialLotContextEl.innerHTML = `
+    <div class="official-lot-head">
+      <div>
+        <span class="section-label">Selected lot on official 2D map</span>
+        <strong>${escapeHtml(lot.id)} estimated planning context</strong>
+        <p>${escapeHtml(officialLotContext.projectionNote || "")}</p>
+      </div>
+      <span class="badge confidence-low">${escapeHtml(officialLotContext.projectionConfidence || "low")} confidence</span>
+    </div>
+    <div class="context-metrics">
+      <div><span>Estimated coordinate</span><strong>${escapeHtml((lot.estimatedCoordinate || []).join(", "))}</strong></div>
+      <div><span>Yandex Sharq point</span><strong>${escapeHtml((officialLotContext.sharqBahoriYandexPoint || []).join(", "))}</strong></div>
+      <div><span>Nearest source</span><strong>Official 2D GeoJSON</strong></div>
+    </div>
+    <div class="context-list official-lot-list">
+      ${nearest
+        .map((item) => `
+          <div class="context-row">
+            <strong>${escapeHtml(item.function1 || "-")}${item.function2 && item.function2 !== "Boshqa foydalanish yo'q" ? ` + ${escapeHtml(item.function2)}` : ""}</strong>
+            <span>${escapeHtml(item.block || "-")} | ${escapeHtml(item.transekt || "-")} | ${escapeHtml(item.distanceMeters)} m | ${escapeHtml(item.areaHa || "-")} ha | ${escapeHtml(item.floors ?? "-")} floors</span>
+          </div>
+        `)
+        .join("")}
+    </div>
+  `;
+}
+
 function selectType(typeId) {
   sharqState.typeId = typeId;
   sharqState.planId = null;
@@ -1328,18 +1676,27 @@ function openSelectedFlatPlan() {
 
 function resetSharqMap() {
   sharqState = { lotId: "46A", typeId: "tip1", planId: null, sketchVariantId: "enhanced" };
+  flatCodeInput.value = "46A/4/25";
   selectLot(sharqState.lotId);
   renderTypeButtons();
   renderTypePlanButtons();
   renderTypeSketch();
   renderFlatPreview();
   renderFlatThumbnails();
+  renderFlatAnalysis();
+  renderFlatRanking();
 }
 
 function initSharqMap() {
   workspaceButtons.forEach((button) => {
     button.addEventListener("click", () => setWorkspace(button.dataset.workspace));
   });
+  flatAnalyzerForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    renderFlatAnalysis();
+  });
+  rankingRoomsSelect.addEventListener("change", renderFlatRanking);
+  rankingPrioritySelect.addEventListener("change", renderFlatRanking);
   resetSharqMapButton.addEventListener("click", resetSharqMap);
   openFlatPlanButton.addEventListener("click", openSelectedFlatPlan);
   flatImageEl.addEventListener("click", openSelectedFlatPlan);
@@ -1349,6 +1706,9 @@ function initSharqMap() {
   });
   resetSharqMap();
   loadSharqCandidates();
+  loadOnSaleFlatDetails();
+  loadNewTashkentContext();
+  loadOfficialLotContext();
 }
 
 initSharqMap();
