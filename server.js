@@ -512,6 +512,7 @@ async function notifySoldLot(entry) {
     `Price: ${formatNumber(price)} UZS`,
     `Price/m²: ${pricePerSqm ? `${formatNumber(pricePerSqm)} UZS` : "-"}`,
   ];
+  if (entry.id) lines.push(`Link: https://e-auksion.uz/lot-view?lot_id=${entry.id}`);
 
   await sendTelegramMessage(lines.join("\n"));
 }
