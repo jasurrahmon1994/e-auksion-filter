@@ -499,31 +499,42 @@ function classifyCompletedStatus(row) {
   return "Unknown";
 }
 
-async function fetchCompletedStatus(apartmentKey) {
-  try {
-    const now = new Date();
-    // E-AUKSION rejects completed-auction date ranges over 3 months, so use an 85-day window.
+// The "q" search param filters by lot_number, not the apartment name, so it can't be used
+// to look up a specific apartment code. Instead, page through the whole completed listing
+// for this group/category and index it by identity key ourselves.
+async function fetchCompletedLotsMap() {
+  const map = new Map();
+  const now = new Date();
+  // E-AUKSION rejects completed-auction date ranges over 3 months, so use an 85-day window.
+  const datef = formatDate(new Date(now.getTime() - 85 * 24 * 60 * 60 * 1000));
+  const datet = formatDate(now);
+
+  let page = 1;
+  let totalPages = 1;
+  do {
     const params = new URLSearchParams({
       index: "2",
-      page: "1",
-      perPage: "20",
-      q: apartmentKey,
+      page: String(page),
+      perPage: "100",
       fas: "0",
-      datef: formatDate(new Date(now.getTime() - 85 * 24 * 60 * 60 * 1000)),
-      datet: formatDate(now),
+      datef,
+      datet,
     });
     const { endpoint, requestBody } = buildLotPayload(params);
     const data = await eAuksionRequest(endpoint, "POST", requestBody, "uz");
-    const rows = Array.isArray(data.rows) ? data.rows : [];
-    return rows.find((row) => lotIdentityKey(row) === apartmentKey) || null;
-  } catch (error) {
-    console.error(`[new-lot-watch] Failed to look up completed status for ${apartmentKey}:`, error.message || error);
-    return null;
-  }
+    for (const row of Array.isArray(data.rows) ? data.rows : []) {
+      const key = lotIdentityKey(row);
+      if (!map.has(key)) map.set(key, row);
+    }
+    totalPages = data.totalPages || 1;
+    page += 1;
+  } while (page <= totalPages);
+
+  return map;
 }
 
-async function notifyDelistedLot(apartmentKey) {
-  const row = await fetchCompletedStatus(apartmentKey);
+async function notifyDelistedLot(apartmentKey, completedLotsMap) {
+  const row = completedLotsMap.get(apartmentKey) || null;
   const label = row ? classifyCompletedStatus(row) : "Unknown (not found in completed listing)";
   if (label !== "Successful") return;
 
@@ -546,8 +557,11 @@ async function checkForNewSharqLots() {
       await notifyNewSharqLot(row);
     }
 
-    for (const key of delistedKeys) {
-      await notifyDelistedLot(key);
+    if (delistedKeys.length) {
+      const completedLotsMap = await fetchCompletedLotsMap();
+      for (const key of delistedKeys) {
+        await notifyDelistedLot(key, completedLotsMap);
+      }
     }
 
     await saveSeenLotKeys(currentKeys);
