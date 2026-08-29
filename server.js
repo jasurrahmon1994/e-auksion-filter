@@ -502,13 +502,14 @@ function classifyCompletedStatus(row) {
 async function fetchCompletedStatus(apartmentKey) {
   try {
     const now = new Date();
+    // E-AUKSION rejects completed-auction date ranges over 3 months, so use an 85-day window.
     const params = new URLSearchParams({
       index: "2",
       page: "1",
       perPage: "20",
       q: apartmentKey,
       fas: "0",
-      datef: formatDate(new Date(now.getFullYear() - 3, 0, 1)),
+      datef: formatDate(new Date(now.getTime() - 85 * 24 * 60 * 60 * 1000)),
       datet: formatDate(now),
     });
     const { endpoint, requestBody } = buildLotPayload(params);
