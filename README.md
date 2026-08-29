@@ -77,6 +77,8 @@ The server can poll for newly listed Sharq Bahori lots and post a Telegram messa
 
 The first poll after startup only records the currently listed lots as a baseline (no messages sent). Every poll after that sends a message for each lot that wasn't seen before, with the lot name, rooms, area, price, and price per square meter. Lots are identified by their apartment code (e.g. `44B/2/52`), not the numeric lot ID, since an unsold lot gets a new ID when E-AUKSION relists it.
 
+The poller also detects lots that disappear from the on-sale list since the last check, looks them up in the completed-lots listing to see the outcome, and sends a message like "✅ Lot 44B/2/52 left the on-sale list. Outcome: Successful" (or "Failed / not held", "Cancelled", "Unknown" if it can't be matched).
+
 By default, seen apartment codes are cached in `reports/seen-sharq-lots.json` on local disk. This is fine for local runs, but Render's free plan has no persistent disk — the file is wiped on every restart/redeploy, silently resetting the baseline. To persist state across restarts on Render, back it with a GitHub Gist instead:
 
 1. Create a GitHub [Personal Access Token](https://github.com/settings/tokens) with only the `gist` scope.

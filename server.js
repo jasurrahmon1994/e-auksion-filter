@@ -490,6 +490,49 @@ async function notifyNewSharqLot(lot) {
   await sendTelegramMessage(lines.join("\n"));
 }
 
+// Mirrors the status mapping used by the frontend's lotStatus() in public/app.js.
+function classifyCompletedStatus(row) {
+  const statusId = Number(row?.lot_statuses_id);
+  if (statusId === 32) return "Failed / not held";
+  if ([19, 29, 34].includes(statusId)) return "Successful";
+  if (statusId === 30) return "Cancelled";
+  return "Unknown";
+}
+
+async function fetchCompletedStatus(apartmentKey) {
+  try {
+    const now = new Date();
+    const params = new URLSearchParams({
+      index: "2",
+      page: "1",
+      perPage: "20",
+      q: apartmentKey,
+      fas: "0",
+      datef: formatDate(new Date(now.getFullYear() - 3, 0, 1)),
+      datet: formatDate(now),
+    });
+    const { endpoint, requestBody } = buildLotPayload(params);
+    const data = await eAuksionRequest(endpoint, "POST", requestBody, "uz");
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    return rows.find((row) => lotIdentityKey(row) === apartmentKey) || null;
+  } catch (error) {
+    console.error(`[new-lot-watch] Failed to look up completed status for ${apartmentKey}:`, error.message || error);
+    return null;
+  }
+}
+
+async function notifyDelistedLot(apartmentKey) {
+  const row = await fetchCompletedStatus(apartmentKey);
+  const label = row ? classifyCompletedStatus(row) : "Unknown (not found in completed listing)";
+  const icon = label === "Successful" ? "✅" : label === "Failed / not held" ? "⚠️" : "❔";
+
+  const lines = [`${icon} Lot <b>${apartmentKey}</b> left the on-sale list.`, `Outcome: ${label}`];
+  if (row) lines.push(`Price: ${formatNumber(row.start_price || 0)} UZS`);
+  lines.push(`Search: https://e-auksion.uz/lots?group=41&category=169&q=${encodeURIComponent(apartmentKey)}`);
+
+  await sendTelegramMessage(lines.join("\n"));
+}
+
 async function checkForNewSharqLots() {
   try {
     const rows = await fetchAllSharqLots();
@@ -497,17 +540,22 @@ async function checkForNewSharqLots() {
     const seenKeys = await loadSeenLotKeys();
     const isFirstRun = seenKeys.size === 0;
     const newRows = isFirstRun ? [] : rows.filter((row) => !seenKeys.has(lotIdentityKey(row)));
+    const delistedKeys = isFirstRun ? [] : [...seenKeys].filter((key) => !currentKeys.has(key));
 
     for (const row of newRows) {
       await notifyNewSharqLot(row);
+    }
+
+    for (const key of delistedKeys) {
+      await notifyDelistedLot(key);
     }
 
     await saveSeenLotKeys(currentKeys);
 
     if (isFirstRun) {
       console.log(`[new-lot-watch] Baseline established with ${currentKeys.size} existing lots.`);
-    } else if (newRows.length) {
-      console.log(`[new-lot-watch] Notified about ${newRows.length} new lot(s).`);
+    } else if (newRows.length || delistedKeys.length) {
+      console.log(`[new-lot-watch] Notified about ${newRows.length} new and ${delistedKeys.length} delisted lot(s).`);
     }
   } catch (error) {
     console.error("[new-lot-watch] Check failed:", error.message || error);
