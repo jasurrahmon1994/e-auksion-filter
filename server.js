@@ -509,6 +509,16 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (requestUrl.pathname === "/api/test-telegram" && req.method === "POST") {
+      if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+        json(res, 400, { ok: false, message: "TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID not set" });
+        return;
+      }
+      await sendTelegramMessage("✅ Test notification from e-auksion filter (server is configured correctly).");
+      json(res, 200, { ok: true });
+      return;
+    }
+
     serveStatic(req, res);
   } catch (error) {
     json(res, error.status || 500, {
