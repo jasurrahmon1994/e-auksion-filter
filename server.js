@@ -387,30 +387,37 @@ function githubApiRequest(method, apiPath, payload) {
   });
 }
 
-async function loadSeenLotKeys() {
+// Stored entries are { key, id, start_price } so a delisted lot's last-known price/id
+// is still available to build a "sold" notification without any extra lookup.
+function normalizeSeenEntries(parsed) {
+  if (!Array.isArray(parsed)) return [];
+  return parsed.map((item) => (typeof item === "string" ? { key: item, id: null, start_price: null } : item));
+}
+
+async function loadSeenLots() {
   if (GIST_TOKEN && GIST_ID) {
     try {
       const gist = await githubApiRequest("GET", `/gists/${GIST_ID}`);
       const file = gist.files && gist.files[GIST_FILENAME];
       const parsed = file ? JSON.parse(file.content) : [];
-      return new Set(Array.isArray(parsed) ? parsed : []);
+      return new Map(normalizeSeenEntries(parsed).map((entry) => [entry.key, entry]));
     } catch (error) {
       console.error("[new-lot-watch] Failed to load seen lots from Gist:", error.message || error);
-      return new Set();
+      return new Map();
     }
   }
 
   try {
     const raw = fs.readFileSync(SEEN_LOTS_FILE, "utf8");
     const parsed = JSON.parse(raw);
-    return new Set(Array.isArray(parsed) ? parsed : []);
+    return new Map(normalizeSeenEntries(parsed).map((entry) => [entry.key, entry]));
   } catch (_) {
-    return new Set();
+    return new Map();
   }
 }
 
-async function saveSeenLotKeys(keysSet) {
-  const sorted = [...keysSet].sort();
+async function saveSeenLots(entriesMap) {
+  const sorted = [...entriesMap.values()].sort((a, b) => a.key.localeCompare(b.key));
 
   if (GIST_TOKEN && GIST_ID) {
     try {
@@ -490,56 +497,21 @@ async function notifyNewSharqLot(lot) {
   await sendTelegramMessage(lines.join("\n"));
 }
 
-// Mirrors the status mapping used by the frontend's lotStatus() in public/app.js.
-function classifyCompletedStatus(row) {
-  const statusId = Number(row?.lot_statuses_id);
-  if (statusId === 32) return "Failed / not held";
-  if ([19, 29, 34].includes(statusId)) return "Successful";
-  if (statusId === 30) return "Cancelled";
-  return "Unknown";
-}
+// A lot disappearing from the on-sale list means it was sold; the last-known id/price
+// (captured when it was seen on sale) is reused here instead of an extra lookup.
+async function notifySoldLot(entry) {
+  const { rooms, area } = entry.id ? await fetchLotRoomsAndArea(entry.id) : { rooms: "-", area: "" };
+  const price = Number(entry.start_price || 0);
+  const areaNum = Number(area || 0);
+  const pricePerSqm = price && areaNum ? Math.round(price / areaNum) : null;
 
-// The "q" search param filters by lot_number, not the apartment name, so it can't be used
-// to look up a specific apartment code. Instead, page through the whole completed listing
-// for this group/category and index it by identity key ourselves.
-async function fetchCompletedLotsMap() {
-  const map = new Map();
-  const now = new Date();
-  // E-AUKSION rejects completed-auction date ranges over 3 months, so use an 85-day window.
-  const datef = formatDate(new Date(now.getTime() - 85 * 24 * 60 * 60 * 1000));
-  const datet = formatDate(now);
-
-  let page = 1;
-  let totalPages = 1;
-  do {
-    const params = new URLSearchParams({
-      index: "2",
-      page: String(page),
-      perPage: "100",
-      fas: "0",
-      datef,
-      datet,
-    });
-    const { endpoint, requestBody } = buildLotPayload(params);
-    const data = await eAuksionRequest(endpoint, "POST", requestBody, "uz");
-    for (const row of Array.isArray(data.rows) ? data.rows : []) {
-      const key = lotIdentityKey(row);
-      if (!map.has(key)) map.set(key, row);
-    }
-    totalPages = data.totalPages || 1;
-    page += 1;
-  } while (page <= totalPages);
-
-  return map;
-}
-
-async function notifyDelistedLot(apartmentKey, completedLotsMap) {
-  const row = completedLotsMap.get(apartmentKey) || null;
-  const label = row ? classifyCompletedStatus(row) : "Unknown (not found in completed listing)";
-  if (label !== "Successful") return;
-
-  const lines = [`✅ Lot <b>${apartmentKey}</b> sold.`, `Price: ${formatNumber(row.start_price || 0)} UZS`];
-  lines.push(`Search: https://e-auksion.uz/lots?group=41&category=169&q=${encodeURIComponent(apartmentKey)}`);
+  const lines = [
+    `✅ Sold: <b>${entry.key}</b>`,
+    `Rooms: ${rooms || "-"}`,
+    `Area: ${area ? `${area} m²` : "-"}`,
+    `Price: ${formatNumber(price)} UZS`,
+    `Price/m²: ${pricePerSqm ? `${formatNumber(pricePerSqm)} UZS` : "-"}`,
+  ];
 
   await sendTelegramMessage(lines.join("\n"));
 }
@@ -547,29 +519,34 @@ async function notifyDelistedLot(apartmentKey, completedLotsMap) {
 async function checkForNewSharqLots() {
   try {
     const rows = await fetchAllSharqLots();
-    const currentKeys = new Set(rows.map(lotIdentityKey));
-    const seenKeys = await loadSeenLotKeys();
-    const isFirstRun = seenKeys.size === 0;
-    const newRows = isFirstRun ? [] : rows.filter((row) => !seenKeys.has(lotIdentityKey(row)));
-    const delistedKeys = isFirstRun ? [] : [...seenKeys].filter((key) => !currentKeys.has(key));
+    const currentMap = new Map(rows.map((row) => [lotIdentityKey(row), row]));
+    const seenMap = await loadSeenLots();
+    const isFirstRun = seenMap.size === 0;
+    const newRows = isFirstRun ? [] : rows.filter((row) => !seenMap.has(lotIdentityKey(row)));
+    const soldEntries = isFirstRun
+      ? []
+      : [...seenMap.values()].filter((entry) => !currentMap.has(entry.key));
 
     for (const row of newRows) {
       await notifyNewSharqLot(row);
     }
 
-    if (delistedKeys.length) {
-      const completedLotsMap = await fetchCompletedLotsMap();
-      for (const key of delistedKeys) {
-        await notifyDelistedLot(key, completedLotsMap);
-      }
+    for (const entry of soldEntries) {
+      await notifySoldLot(entry);
     }
 
-    await saveSeenLotKeys(currentKeys);
+    const nextSeenMap = new Map(
+      [...currentMap.entries()].map(([key, row]) => [
+        key,
+        { key, id: row.id, start_price: row.start_price },
+      ])
+    );
+    await saveSeenLots(nextSeenMap);
 
     if (isFirstRun) {
-      console.log(`[new-lot-watch] Baseline established with ${currentKeys.size} existing lots.`);
-    } else if (newRows.length || delistedKeys.length) {
-      console.log(`[new-lot-watch] Checked ${newRows.length} new and ${delistedKeys.length} delisted lot(s) (only sold ones notify).`);
+      console.log(`[new-lot-watch] Baseline established with ${nextSeenMap.size} existing lots.`);
+    } else if (newRows.length || soldEntries.length) {
+      console.log(`[new-lot-watch] Notified about ${newRows.length} new and ${soldEntries.length} sold lot(s).`);
     }
   } catch (error) {
     console.error("[new-lot-watch] Check failed:", error.message || error);
