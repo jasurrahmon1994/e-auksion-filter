@@ -524,10 +524,9 @@ async function fetchCompletedStatus(apartmentKey) {
 async function notifyDelistedLot(apartmentKey) {
   const row = await fetchCompletedStatus(apartmentKey);
   const label = row ? classifyCompletedStatus(row) : "Unknown (not found in completed listing)";
-  const icon = label === "Successful" ? "✅" : label === "Failed / not held" ? "⚠️" : "❔";
+  if (label !== "Successful") return;
 
-  const lines = [`${icon} Lot <b>${apartmentKey}</b> left the on-sale list.`, `Outcome: ${label}`];
-  if (row) lines.push(`Price: ${formatNumber(row.start_price || 0)} UZS`);
+  const lines = [`✅ Lot <b>${apartmentKey}</b> sold.`, `Price: ${formatNumber(row.start_price || 0)} UZS`];
   lines.push(`Search: https://e-auksion.uz/lots?group=41&category=169&q=${encodeURIComponent(apartmentKey)}`);
 
   await sendTelegramMessage(lines.join("\n"));
@@ -555,7 +554,7 @@ async function checkForNewSharqLots() {
     if (isFirstRun) {
       console.log(`[new-lot-watch] Baseline established with ${currentKeys.size} existing lots.`);
     } else if (newRows.length || delistedKeys.length) {
-      console.log(`[new-lot-watch] Notified about ${newRows.length} new and ${delistedKeys.length} delisted lot(s).`);
+      console.log(`[new-lot-watch] Checked ${newRows.length} new and ${delistedKeys.length} delisted lot(s) (only sold ones notify).`);
     }
   } catch (error) {
     console.error("[new-lot-watch] Check failed:", error.message || error);
