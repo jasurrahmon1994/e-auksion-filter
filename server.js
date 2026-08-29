@@ -16,6 +16,12 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
 const NEW_LOT_POLL_INTERVAL_MS = Number(process.env.NEW_LOT_POLL_INTERVAL_MS || 60 * 60 * 1000);
 const SEEN_LOTS_FILE = path.join(__dirname, "reports", "seen-sharq-lots.json");
 
+// GitHub Gist is used as durable storage for the seen-lot keys, since Render's free
+// plan has no persistent disk and the local file would be wiped on every restart.
+const GIST_TOKEN = process.env.GIST_TOKEN || "";
+const GIST_ID = process.env.GIST_ID || "";
+const GIST_FILENAME = "seen-sharq-lots.json";
+
 // PoW token cache: { token: string, expiresAt: timestamp }
 const powTokenCache = new Map();
 
@@ -342,7 +348,58 @@ function sendTelegramMessage(text) {
   });
 }
 
-function loadSeenLotKeys() {
+function githubApiRequest(method, apiPath, payload) {
+  return new Promise((resolve, reject) => {
+    const body = payload ? Buffer.from(JSON.stringify(payload), "utf8") : null;
+    const req = https.request(
+      `https://api.github.com${apiPath}`,
+      {
+        method,
+        headers: {
+          Authorization: `token ${GIST_TOKEN}`,
+          "User-Agent": "e-auksion-filter",
+          Accept: "application/vnd.github+json",
+          ...(body ? { "Content-Type": "application/json", "Content-Length": body.length } : {}),
+        },
+      },
+      (apiRes) => {
+        const chunks = [];
+        apiRes.on("data", (chunk) => chunks.push(chunk));
+        apiRes.on("end", () => {
+          const raw = Buffer.concat(chunks).toString("utf8");
+          let parsed = raw;
+          try {
+            parsed = JSON.parse(raw);
+          } catch (_) {
+            // Keep raw body for debugging.
+          }
+          if (apiRes.statusCode >= 400) {
+            reject(new Error(`GitHub API request failed (${apiRes.statusCode}): ${raw}`));
+            return;
+          }
+          resolve(parsed);
+        });
+      }
+    );
+    req.on("error", reject);
+    if (body) req.write(body);
+    req.end();
+  });
+}
+
+async function loadSeenLotKeys() {
+  if (GIST_TOKEN && GIST_ID) {
+    try {
+      const gist = await githubApiRequest("GET", `/gists/${GIST_ID}`);
+      const file = gist.files && gist.files[GIST_FILENAME];
+      const parsed = file ? JSON.parse(file.content) : [];
+      return new Set(Array.isArray(parsed) ? parsed : []);
+    } catch (error) {
+      console.error("[new-lot-watch] Failed to load seen lots from Gist:", error.message || error);
+      return new Set();
+    }
+  }
+
   try {
     const raw = fs.readFileSync(SEEN_LOTS_FILE, "utf8");
     const parsed = JSON.parse(raw);
@@ -352,9 +409,22 @@ function loadSeenLotKeys() {
   }
 }
 
-function saveSeenLotKeys(keysSet) {
+async function saveSeenLotKeys(keysSet) {
+  const sorted = [...keysSet].sort();
+
+  if (GIST_TOKEN && GIST_ID) {
+    try {
+      await githubApiRequest("PATCH", `/gists/${GIST_ID}`, {
+        files: { [GIST_FILENAME]: { content: JSON.stringify(sorted) } },
+      });
+      return;
+    } catch (error) {
+      console.error("[new-lot-watch] Failed to save seen lots to Gist:", error.message || error);
+    }
+  }
+
   fs.mkdirSync(path.dirname(SEEN_LOTS_FILE), { recursive: true });
-  fs.writeFileSync(SEEN_LOTS_FILE, JSON.stringify([...keysSet].sort()));
+  fs.writeFileSync(SEEN_LOTS_FILE, JSON.stringify(sorted));
 }
 
 // The apartment code (e.g. "44B/2/52") identifies the physical flat; lot.id changes
@@ -424,7 +494,7 @@ async function checkForNewSharqLots() {
   try {
     const rows = await fetchAllSharqLots();
     const currentKeys = new Set(rows.map(lotIdentityKey));
-    const seenKeys = loadSeenLotKeys();
+    const seenKeys = await loadSeenLotKeys();
     const isFirstRun = seenKeys.size === 0;
     const newRows = isFirstRun ? [] : rows.filter((row) => !seenKeys.has(lotIdentityKey(row)));
 
@@ -432,7 +502,7 @@ async function checkForNewSharqLots() {
       await notifyNewSharqLot(row);
     }
 
-    saveSeenLotKeys(currentKeys);
+    await saveSeenLotKeys(currentKeys);
 
     if (isFirstRun) {
       console.log(`[new-lot-watch] Baseline established with ${currentKeys.size} existing lots.`);
