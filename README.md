@@ -73,7 +73,7 @@ The server can poll for newly listed Sharq Bahori lots and post a Telegram messa
 3. Set these environment variables before starting the server:
    - `TELEGRAM_BOT_TOKEN`
    - `TELEGRAM_CHAT_ID`
-   - `NEW_LOT_POLL_INTERVAL_MS` (optional, default `300000` = 5 minutes)
+   - `NEW_LOT_POLL_INTERVAL_MS` (optional, default `3600000` = 1 hour)
 
 The first poll after startup only records the currently listed lots as a baseline (no messages sent). Every poll after that sends a message for each lot that wasn't seen before, with the lot name, rooms, area, price, and price per square meter. Lots are identified by their apartment code (e.g. `44B/2/52`), not the numeric lot ID, since an unsold lot gets a new ID when E-AUKSION relists it. Seen apartment codes are cached in `reports/seen-sharq-lots.json`.
 

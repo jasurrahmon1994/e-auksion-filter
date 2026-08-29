@@ -11,6 +11,7 @@ const roomsFilterInput = document.querySelector("#roomsFilter");
 const minPricePerSqmInput = document.querySelector("#minPricePerSqm");
 const maxPricePerSqmInput = document.querySelector("#maxPricePerSqm");
 const exportCsvButton = document.querySelector("#exportCsv");
+const checkNewLotsButton = document.querySelector("#checkNewLots");
 const loadAllButton = document.querySelector("#loadAll");
 const loadDetailsButton = document.querySelector("#loadDetails");
 const toggleViewButton = document.querySelector("#toggleView");
@@ -53,6 +54,20 @@ function setStatus(message, isError = false) {
   statusEl.hidden = !message;
   statusEl.textContent = message || "";
   statusEl.classList.toggle("error", isError);
+}
+
+async function checkNewLots() {
+  checkNewLotsButton.disabled = true;
+  setStatus("Checking for new Sharq Bahori lots...");
+  try {
+    const response = await fetch("/api/check-new-lots", { method: "POST" });
+    if (!response.ok) throw new Error(`Request failed (${response.status})`);
+    setStatus("Check complete. Telegram will notify you if any new lots were found.");
+  } catch (error) {
+    setStatus(`Check failed: ${error.message}`, true);
+  } finally {
+    checkNewLotsButton.disabled = false;
+  }
 }
 
 function updateBusyControls() {
@@ -701,6 +716,7 @@ toggleViewButton.addEventListener("click", () => {
 loadAllButton.addEventListener("click", loadAllPages);
 loadDetailsButton.addEventListener("click", loadDetailsForRows);
 exportCsvButton.addEventListener("click", exportCsv);
+checkNewLotsButton.addEventListener("click", checkNewLots);
 autoRefreshInput.addEventListener("change", updateAutoRefresh);
 refreshIntervalSelect.addEventListener("change", updateAutoRefresh);
 

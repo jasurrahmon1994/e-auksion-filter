@@ -13,7 +13,7 @@ const DEFAULT_REFERER =
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
-const NEW_LOT_POLL_INTERVAL_MS = Number(process.env.NEW_LOT_POLL_INTERVAL_MS || 5 * 60 * 1000);
+const NEW_LOT_POLL_INTERVAL_MS = Number(process.env.NEW_LOT_POLL_INTERVAL_MS || 60 * 60 * 1000);
 const SEEN_LOTS_FILE = path.join(__dirname, "reports", "seen-sharq-lots.json");
 
 // PoW token cache: { token: string, expiresAt: timestamp }

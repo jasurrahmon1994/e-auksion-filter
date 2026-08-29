@@ -14,4 +14,4 @@ services:
       - key: TELEGRAM_CHAT_ID
         sync: false
       - key: NEW_LOT_POLL_INTERVAL_MS
-        value: "300000"
+        value: "3600000"
