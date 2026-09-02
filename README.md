@@ -77,8 +77,8 @@ The server can poll for newly listed Sharq Bahori lots and post a Telegram messa
 
 The first poll after startup only records the currently listed lots as a baseline (no messages sent). Every poll after that compares the current on-sale list against the last one:
 
-- A lot that's newly on sale sends "🆕 New Sharq Bahori lot: ..." with rooms, area, price, and price per square meter.
-- A lot that disappeared from the on-sale list is treated as sold and sends "✅ Sold: ..." with the same details, using its last-known price/id (no extra lookup needed).
+- A lot that's newly on sale sends "🆕 New Sharq Bahori lot: ..." with rooms, floor, area, price, and price per square meter.
+- A lot that disappeared from the on-sale list is treated as sold and sends "✅ Sold: ..." with the same details, using its cached rooms/floor/area/price (fetched fresh only if that cache is missing).
 
 Lots are identified by their apartment code (e.g. `44B/2/52`), not the numeric lot ID, since an unsold lot gets a new ID when E-AUKSION relists it.
 
