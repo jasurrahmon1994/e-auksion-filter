@@ -387,11 +387,15 @@ function githubApiRequest(method, apiPath, payload) {
   });
 }
 
-// Stored entries are { key, id, start_price } so a delisted lot's last-known price/id
-// is still available to build a "sold" notification without any extra lookup.
+// Stored entries are { key, id, start_price, rooms, area, floor } so a delisted lot's
+// last-known details are still available to build a "sold" notification without a live lookup.
 function normalizeSeenEntries(parsed) {
   if (!Array.isArray(parsed)) return [];
-  return parsed.map((item) => (typeof item === "string" ? { key: item, id: null, start_price: null } : item));
+  return parsed.map((item) =>
+    typeof item === "string"
+      ? { key: item, id: null, start_price: null, rooms: null, area: null, floor: null }
+      : item
+  );
 }
 
 async function loadSeenLots() {
@@ -462,7 +466,16 @@ function formatNumber(value) {
   return Number.isFinite(n) ? n.toLocaleString("en-US") : String(value ?? "-");
 }
 
-async function fetchLotRoomsAndArea(lotId) {
+// Keeps consecutive detail-endpoint calls spaced out so a batch of new/sold lots
+// doesn't trip the e-auksion API's rate limit.
+let lastDetailFetchAt = 0;
+const DETAIL_FETCH_MIN_GAP_MS = 1500;
+
+async function fetchLotDetails(lotId) {
+  const wait = lastDetailFetchAt + DETAIL_FETCH_MIN_GAP_MS - Date.now();
+  if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+  lastDetailFetchAt = Date.now();
+
   try {
     const detail = await eAuksionRequestWithPow(`/api/front/lot-info?lot_id=${encodeURIComponent(lotId)}`, "GET", null, "uz");
     const details = Array.isArray(detail.confiscant_details_list) ? detail.confiscant_details_list : [];
@@ -472,23 +485,29 @@ async function fetchLotRoomsAndArea(lotId) {
     };
     const rooms = find("xona_umumiy_soni");
     const area = String(find("xonadon_umumiy_maydon")).replaceAll(",", ".");
-    return { rooms, area };
+    const floor = find("which_floors_in_object");
+    return { rooms, area, floor };
   } catch (error) {
     console.error(`[new-lot-watch] Failed to load details for lot ${lotId}:`, error.message || error);
-    return { rooms: "-", area: "" };
+    return { rooms: "", area: "", floor: "" };
   }
 }
 
-async function notifyNewSharqLot(lot) {
-  const { rooms, area } = await fetchLotRoomsAndArea(lot.id);
+// True when any of the cached rooms/area/floor fields are missing, so callers know to re-fetch.
+function hasMissingDetails(details) {
+  return !details || !details.rooms || !details.area || !details.floor;
+}
+
+async function notifyNewSharqLot(lot, details) {
   const price = Number(lot.start_price || 0);
-  const areaNum = Number(area || 0);
+  const areaNum = Number(details.area || 0);
   const pricePerSqm = price && areaNum ? Math.round(price / areaNum) : null;
 
   const lines = [
     `🆕 New Sharq Bahori lot: <b>${lot.name || lot.lot_number}</b>`,
-    `Rooms: ${rooms || "-"}`,
-    `Area: ${area ? `${area} m²` : "-"}`,
+    `Rooms: ${details.rooms || "-"}`,
+    `Floor: ${details.floor || "-"}`,
+    `Area: ${details.area ? `${details.area} m²` : "-"}`,
     `Price: ${formatNumber(price)} UZS`,
     `Price/m²: ${pricePerSqm ? `${formatNumber(pricePerSqm)} UZS` : "-"}`,
     `Link: https://e-auksion.uz/lot-view?lot_id=${lot.id}`,
@@ -497,18 +516,23 @@ async function notifyNewSharqLot(lot) {
   await sendTelegramMessage(lines.join("\n"));
 }
 
-// A lot disappearing from the on-sale list means it was sold; the last-known id/price
-// (captured when it was seen on sale) is reused here instead of an extra lookup.
+// A lot disappearing from the on-sale list means it was sold; cached details (captured while
+// it was on sale) are reused so no extra lookup is needed. If any detail is missing (e.g. an
+// entry saved before caching was added), it's fetched live using the cached lot id.
 async function notifySoldLot(entry) {
-  const { rooms, area } = entry.id ? await fetchLotRoomsAndArea(entry.id) : { rooms: "-", area: "" };
+  let details = { rooms: entry.rooms, area: entry.area, floor: entry.floor };
+  if (hasMissingDetails(details) && entry.id) {
+    details = await fetchLotDetails(entry.id);
+  }
   const price = Number(entry.start_price || 0);
-  const areaNum = Number(area || 0);
+  const areaNum = Number(details.area || 0);
   const pricePerSqm = price && areaNum ? Math.round(price / areaNum) : null;
 
   const lines = [
     `✅ Sold: <b>${entry.key}</b>`,
-    `Rooms: ${rooms || "-"}`,
-    `Area: ${area ? `${area} m²` : "-"}`,
+    `Rooms: ${details.rooms || "-"}`,
+    `Floor: ${details.floor || "-"}`,
+    `Area: ${details.area ? `${details.area} m²` : "-"}`,
     `Price: ${formatNumber(price)} UZS`,
     `Price/m²: ${pricePerSqm ? `${formatNumber(pricePerSqm)} UZS` : "-"}`,
   ];
@@ -517,7 +541,16 @@ async function notifySoldLot(entry) {
   await sendTelegramMessage(lines.join("\n"));
 }
 
+// Prevents an overlapping manual trigger and the interval poll from both racing on the
+// same stale seen-lots snapshot and double-sending notifications.
+let checkInProgress = false;
+
 async function checkForNewSharqLots() {
+  if (checkInProgress) {
+    console.log("[new-lot-watch] Skipped: a check is already in progress.");
+    return;
+  }
+  checkInProgress = true;
   try {
     const rows = await fetchAllSharqLots();
     const currentMap = new Map(rows.map((row) => [lotIdentityKey(row), row]));
@@ -528,8 +561,13 @@ async function checkForNewSharqLots() {
       ? []
       : [...seenMap.values()].filter((entry) => !currentMap.has(entry.key));
 
+    // Only new lots need a detail fetch here (cheap - a handful per poll); fetching every
+    // currently-listed lot on every poll trips the e-auksion API's rate limit.
+    const detailsByKey = new Map();
     for (const row of newRows) {
-      await notifyNewSharqLot(row);
+      const details = await fetchLotDetails(row.id);
+      detailsByKey.set(lotIdentityKey(row), details);
+      await notifyNewSharqLot(row, details);
     }
 
     for (const entry of soldEntries) {
@@ -537,10 +575,11 @@ async function checkForNewSharqLots() {
     }
 
     const nextSeenMap = new Map(
-      [...currentMap.entries()].map(([key, row]) => [
-        key,
-        { key, id: row.id, start_price: row.start_price },
-      ])
+      [...currentMap.entries()].map(([key, row]) => {
+        const previous = seenMap.get(key);
+        const details = detailsByKey.get(key) || { rooms: previous?.rooms, area: previous?.area, floor: previous?.floor };
+        return [key, { key, id: row.id, start_price: row.start_price, ...details }];
+      })
     );
     await saveSeenLots(nextSeenMap);
 
@@ -551,6 +590,8 @@ async function checkForNewSharqLots() {
     }
   } catch (error) {
     console.error("[new-lot-watch] Check failed:", error.message || error);
+  } finally {
+    checkInProgress = false;
   }
 }
 
